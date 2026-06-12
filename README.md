@@ -1,25 +1,24 @@
 # Stokes Staff Hub
 
-A modern internal staff hub for Stokes.
+A premium internal staff hub concept for Stokes.
 
-## Version 1
+This showcase version includes:
+- Stokes-branded homepage
+- People search
+- Department filtering
+- People profiles
+- Favourite Stokes product
+- Birthday display logic
+- Work anniversaries
+- New starters
+- Manager portal concept
+- Mark employee as left / restore employee
 
-- Premium mobile-first homepage
-- Employee directory
-- Search and department filtering
-- Manager portal
-- Add and edit employees
-- Mark employee as left
-- Restore former employees
-- Default silhouette when no photo is used
-
-## Run locally
+Run locally:
 
 ```bash
 npm install
 npm run dev
 ```
 
-## Deployment
-
-Designed for Vercel.
+Deploy by pushing to GitHub. Vercel redeploys automatically.

@@ -1,25 +1,255 @@
 import React, { useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { Search, Users, Newspaper, Cake, Trophy, UserPlus, Shield, Plus, Pencil, RotateCcw, UserRound, CalendarDays, Building2, LogOut } from "lucide-react";
+import {
+  Search, Users, Newspaper, Cake, Trophy, UserPlus, CalendarDays,
+  BookOpen, Phone, Lightbulb, Building2, Heart, Plus, Pencil,
+  RotateCcw, UserRound, ChevronRight, Megaphone
+} from "lucide-react";
 import "./styles.css";
 
-const MANAGER_PASSWORD = "change-this-password";
-const STORAGE_KEY = "stokes-staff-hub-v1";
-const starterEmployees = [
-  { id: "1", fullName: "Amelia Carter", role: "Production Operative", department: "Factory", startDate: "2024-03-12", useDefaultIcon: true, photoUrl: "", status: "active" },
-  { id: "2", fullName: "Tom Richardson", role: "Warehouse Supervisor", department: "Warehouse", startDate: "2021-09-06", useDefaultIcon: true, photoUrl: "", status: "active" },
-  { id: "3", fullName: "Sarah Collins", role: "Technical Assistant", department: "Technical", startDate: "2023-01-18", useDefaultIcon: true, photoUrl: "", status: "active" }
+const employeesSeed = [
+  { id:"1", fullName:"Sophie Carter", role:"Marketing Executive", department:"Marketing", startDate:"2023-06-12", birthdayDay:12, birthdayMonth:6, favouriteProduct:"Tomato Ketchup", status:"active" },
+  { id:"2", fullName:"Tom Richardson", role:"Warehouse Supervisor", department:"Warehouse", startDate:"2014-06-12", birthdayDay:22, birthdayMonth:9, favouriteProduct:"Brown Sauce", status:"active" },
+  { id:"3", fullName:"Sarah Collins", role:"Technical Manager", department:"Technical", startDate:"2021-01-18", birthdayDay:4, birthdayMonth:2, favouriteProduct:"Real Mayonnaise", status:"active" },
+  { id:"4", fullName:"James Wilson", role:"Production Operative", department:"Factory", startDate:"2026-06-05", birthdayDay:19, birthdayMonth:6, favouriteProduct:"Original BBQ Sauce", status:"active" },
+  { id:"5", fullName:"Amelia Brown", role:"Finance Assistant", department:"Finance", startDate:"2022-11-01", birthdayDay:12, birthdayMonth:12, favouriteProduct:"Garlic Mayonnaise", status:"active" },
+  { id:"6", fullName:"Harry Clarke", role:"Maintenance Engineer", department:"Maintenance", startDate:"2019-04-03", birthdayDay:2, birthdayMonth:8, favouriteProduct:"Sweet Chilli Sauce", status:"active" }
 ];
-function loadEmployees(){try{return JSON.parse(localStorage.getItem(STORAGE_KEY))||starterEmployees}catch{return starterEmployees}}
-function saveEmployees(employees){localStorage.setItem(STORAGE_KEY, JSON.stringify(employees))}
-function formatDate(value){if(!value)return"";return new Date(value+"T00:00:00").toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric"})}
-function isNewStarter(startDate){if(!startDate)return false;const started=new Date(startDate+"T00:00:00");const days=(new Date()-started)/(1000*60*60*24);return days>=0&&days<=90}
-function Avatar({employee,large=false}){const className=large?"avatar avatarLarge":"avatar";if(employee.photoUrl&&!employee.useDefaultIcon)return <img className={className} src={employee.photoUrl} alt={employee.fullName}/>;return <div className={`${className} avatarDefault`}><UserRound size={large?76:42}/></div>}
-function Home({setPage,employees}){const active=employees.filter(e=>e.status==="active");const newStarters=active.filter(e=>isNewStarter(e.startDate)).length;return <section className="home"><div className="hero"><p className="eyebrow">Stokes Sauces</p><h1>Good morning 👋</h1><p>Welcome to the Stokes Staff Hub.</p></div><div className="todayCard"><p className="eyebrow">Today at Stokes</p><div className="todayGrid"><div><strong>{active.length}</strong><span>Active staff</span></div><div><strong>{newStarters}</strong><span>New starters</span></div><div><strong>0</strong><span>Announcements</span></div></div></div><div className="homeGrid"><button onClick={()=>setPage("directory")}><Users/><span>Employee Directory</span></button><button><Newspaper/><span>Company News</span></button><button><Cake/><span>Birthdays</span></button><button><Trophy/><span>Work Anniversaries</span></button><button><UserPlus/><span>New Starters</span></button></div></section>}
-function EmployeeCard({employee,onClick}){return <button className="employeeCard" onClick={()=>onClick(employee)}><Avatar employee={employee}/><div><div className="rowTitle"><h3>{employee.fullName}</h3>{isNewStarter(employee.startDate)&&<span>New</span>}</div><p>{employee.role}</p><small><CalendarDays size={14}/> Started {formatDate(employee.startDate)}</small></div></button>}
-function Directory({employees}){const[query,setQuery]=useState("");const[department,setDepartment]=useState("All");const[selected,setSelected]=useState(null);const active=employees.filter(e=>e.status==="active");const departments=["All",...new Set(active.map(e=>e.department).filter(Boolean))];const filtered=useMemo(()=>{const q=query.toLowerCase().trim();return active.filter(e=>department==="All"||e.department===department).filter(e=>!q||`${e.fullName} ${e.role} ${e.department}`.toLowerCase().includes(q)).sort((a,b)=>a.fullName.localeCompare(b.fullName))},[employees,query,department]);return <><section className="pageHeader"><p className="eyebrow">Directory</p><h2>Find your team.</h2></section><label className="search"><Search size={18}/><input placeholder="Search by name, role or department..." value={query} onChange={e=>setQuery(e.target.value)}/></label><div className="chips">{departments.map(d=><button key={d} onClick={()=>setDepartment(d)} className={department===d?"active":""}>{d}</button>)}</div><section className="directory">{filtered.map(employee=><EmployeeCard key={employee.id} employee={employee} onClick={setSelected}/>)}</section>{selected&&<div className="modalBg" onClick={()=>setSelected(null)}><div className="modal" onClick={e=>e.stopPropagation()}><Avatar employee={selected} large/><h2>{selected.fullName}</h2><p>{selected.role}</p><div><Building2 size={16}/> {selected.department}</div><div><CalendarDays size={16}/> Started {formatDate(selected.startDate)}</div><button className="primary" onClick={()=>setSelected(null)}>Close</button></div></div>}</>}
-function ManagerLogin({onLogin}){const[password,setPassword]=useState("");const[error,setError]=useState("");function submit(e){e.preventDefault();if(password===MANAGER_PASSWORD)onLogin();else setError("Incorrect password. Demo password: change-this-password")}return <section className="login"><Shield size={42}/><h2>Manager Portal</h2><p>Manage employee records, photos and status.</p><form onSubmit={submit}><input type="password" placeholder="Manager password" value={password} onChange={e=>setPassword(e.target.value)}/><button className="primary">Log in</button></form>{error&&<small className="error">{error}</small>}</section>}
-function EmployeeForm({employee,onSave,onCancel}){const[form,setForm]=useState(employee||{fullName:"",role:"",department:"",startDate:"",useDefaultIcon:true,photoUrl:"",status:"active"});function update(key,value){setForm(prev=>({...prev,[key]:value}))}function handlePhoto(file){if(!file)return;const reader=new FileReader();reader.onload=()=>setForm(prev=>({...prev,photoUrl:reader.result,useDefaultIcon:false}));reader.readAsDataURL(file)}function submit(e){e.preventDefault();onSave({...form,id:form.id||crypto.randomUUID()})}return <form className="form" onSubmit={submit}><h3>{employee?"Edit employee":"Add employee"}</h3><input required placeholder="Full name" value={form.fullName} onChange={e=>update("fullName",e.target.value)}/><input required placeholder="Role" value={form.role} onChange={e=>update("role",e.target.value)}/><input required placeholder="Department" value={form.department} onChange={e=>update("department",e.target.value)}/><input required type="date" value={form.startDate} onChange={e=>update("startDate",e.target.value)}/><label className="checkbox"><input type="checkbox" checked={form.useDefaultIcon} onChange={e=>update("useDefaultIcon",e.target.checked)}/> Use default silhouette instead of photo</label>{!form.useDefaultIcon&&<input type="file" accept="image/*" onChange={e=>handlePhoto(e.target.files?.[0])}/>}<div className="actions"><button className="primary">Save</button><button type="button" className="secondary" onClick={onCancel}>Cancel</button></div></form>}
-function Manager({employees,setEmployees,logout}){const[showForm,setShowForm]=useState(false);const[editing,setEditing]=useState(null);const[view,setView]=useState("active");const shown=employees.filter(e=>view==="active"?e.status==="active":e.status==="left");function commit(next){setEmployees(next);saveEmployees(next)}function saveEmployee(employee){const exists=employees.some(e=>e.id===employee.id);const next=exists?employees.map(e=>e.id===employee.id?employee:e):[employee,...employees];commit(next);setShowForm(false);setEditing(null)}function markLeft(employee){commit(employees.map(e=>e.id===employee.id?{...e,status:"left"}:e))}function restore(employee){commit(employees.map(e=>e.id===employee.id?{...e,status:"active"}:e))}return <section className="manager"><div className="managerTop"><div><p className="eyebrow">Manager Portal</p><h2>Employee records</h2></div><button className="secondary" onClick={logout}><LogOut size={16}/> Log out</button></div><div className="managerActions"><button className="primary" onClick={()=>setShowForm(true)}><Plus size={16}/> Add employee</button><button className={view==="active"?"tab active":"tab"} onClick={()=>setView("active")}>Active</button><button className={view==="left"?"tab active":"tab"} onClick={()=>setView("left")}>Former employees</button></div>{(showForm||editing)&&<EmployeeForm employee={editing} onSave={saveEmployee} onCancel={()=>{setShowForm(false);setEditing(null)}}/>}<div className="adminList">{shown.map(employee=><div className="adminRow" key={employee.id}><Avatar employee={employee}/><div><strong>{employee.fullName}</strong><p>{employee.role} · {employee.department}</p><small>{employee.status==="active"?`Started ${formatDate(employee.startDate)}`:"Marked as left"}</small></div><div className="rowActions"><button className="secondary" onClick={()=>setEditing(employee)}><Pencil size={15}/> Edit</button>{employee.status==="active"?<button className="secondary" onClick={()=>markLeft(employee)}>Mark as left</button>:<button className="secondary" onClick={()=>restore(employee)}><RotateCcw size={15}/> Restore</button>}</div></div>)}</div></section>}
-function App(){const[page,setPage]=useState("home");const[employees,setEmployees]=useState(loadEmployees);const[managerAuthed,setManagerAuthed]=useState(false);return <main><nav><button className="brand" onClick={()=>setPage("home")}>STOKES <span>Staff Hub</span></button><div><button className={page==="home"?"navActive":""} onClick={()=>setPage("home")}>Home</button><button className={page==="directory"?"navActive":""} onClick={()=>setPage("directory")}>Directory</button><button className={page==="manager"?"navActive":""} onClick={()=>setPage("manager")}>Manager</button></div></nav>{page==="home"&&<Home setPage={setPage} employees={employees}/>} {page==="directory"&&<Directory employees={employees}/>} {page==="manager"&&(managerAuthed?<Manager employees={employees} setEmployees={setEmployees} logout={()=>setManagerAuthed(false)}/>:<ManagerLogin onLogin={()=>setManagerAuthed(true)}/>)}</main>}
-createRoot(document.getElementById("root")).render(<App/>);
+
+const departments = ["All", "Factory", "Warehouse", "Technical", "Sales", "Marketing", "Finance", "HR", "Maintenance", "Directors"];
+
+function formatDate(date) {
+  if (!date) return "";
+  return new Date(date + "T00:00:00").toLocaleDateString("en-GB", { day:"numeric", month:"long", year:"numeric" });
+}
+
+function yearsAtStokes(date) {
+  if (!date) return 0;
+  const start = new Date(date + "T00:00:00");
+  const today = new Date();
+  let years = today.getFullYear() - start.getFullYear();
+  const before = today.getMonth() < start.getMonth() || (today.getMonth() === start.getMonth() && today.getDate() < start.getDate());
+  if (before) years--;
+  return Math.max(0, years);
+}
+
+function isNewStarter(date) {
+  if (!date) return false;
+  const days = (new Date() - new Date(date + "T00:00:00")) / (1000 * 60 * 60 * 24);
+  return days >= 0 && days <= 90;
+}
+
+function birthdayText(person) {
+  if (!person.birthdayDay || !person.birthdayMonth) return "";
+  return new Date(2026, person.birthdayMonth - 1, person.birthdayDay).toLocaleDateString("en-GB", { day:"numeric", month:"long" });
+}
+
+function Avatar({ large = false }) {
+  return <div className={large ? "avatar avatarLarge" : "avatar"}><UserRound size={large ? 82 : 42} /></div>;
+}
+
+function StokesLogo() {
+  return <div className="stokesLogo"><div className="logoWord">Stokes</div><div className="logoRibbon">Sauces For Food Lovers</div></div>;
+}
+
+function Home({ setPage, employees, openPerson }) {
+  const active = employees.filter(e => e.status === "active");
+  const newStarter = active.find(e => isNewStarter(e.startDate));
+  const anniversary = active.find(e => yearsAtStokes(e.startDate) >= 5);
+  const birthday = active[0];
+  const [quickSearch, setQuickSearch] = useState("");
+
+  const quickResults = useMemo(() => {
+    const q = quickSearch.trim().toLowerCase();
+    if (!q) return [];
+    return active.filter(e => `${e.fullName} ${e.role} ${e.department} ${e.favouriteProduct}`.toLowerCase().includes(q)).slice(0,5);
+  }, [quickSearch, employees]);
+
+  return (
+    <section className="home">
+      <div className="hero">
+        <div className="heroTop"><StokesLogo /><span className="taste">Taste without compromise</span></div>
+        <h1>Good morning 👋</h1>
+        <p>Welcome to the Stokes Staff Hub.</p>
+        <div className="heroSearch">
+          <Search size={22} />
+          <input value={quickSearch} onChange={e => setQuickSearch(e.target.value)} placeholder="Search a colleague, role or department..." />
+        </div>
+        {quickResults.length > 0 && (
+          <div className="quickResults">
+            {quickResults.map(person => (
+              <button key={person.id} onClick={() => openPerson(person)}>
+                <Avatar />
+                <span><strong>{person.fullName}</strong><small>{person.role} · {person.department}</small></span>
+                <ChevronRight size={18} />
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <section className="today">
+        <div className="sectionHeader">
+          <p className="eyebrow">Today at Stokes</p>
+          <h2>Little things that keep everyone connected.</h2>
+        </div>
+        <div className="todayList">
+          <article><Cake /><div><strong>It’s {birthday.fullName.split(" ")[0]}’s birthday today!</strong><p>Favourite Stokes product: {birthday.favouriteProduct}</p></div></article>
+          <article><Trophy /><div><strong>{anniversary.fullName.split(" ")[0]} celebrates {yearsAtStokes(anniversary.startDate)} years at Stokes.</strong><p>Thank you for everything you do.</p></div></article>
+          <article><UserPlus /><div><strong>Welcome {newStarter?.fullName.split(" ")[0] || "James"} to the team.</strong><p>Find new starters quickly in People.</p></div></article>
+          <article><Megaphone /><div><strong>Company news will appear here.</strong><p>A clean place for important updates.</p></div></article>
+        </div>
+      </section>
+
+      <section className="browse">
+        <div className="sectionHeader">
+          <p className="eyebrow">Explore</p>
+          <h2>Everything staff need, in one place.</h2>
+        </div>
+        <div className="browseGrid">
+          <Feature icon={<Users />} title="People" onClick={() => setPage("people")} />
+          <Feature icon={<Newspaper />} title="Company News" />
+          <Feature icon={<Cake />} title="Birthdays" />
+          <Feature icon={<Trophy />} title="Work Anniversaries" />
+          <Feature icon={<UserPlus />} title="New Starters" />
+          <Feature icon={<CalendarDays />} title="Events" />
+          <Feature icon={<BookOpen />} title="Training" />
+          <Feature icon={<Phone />} title="Useful Contacts" />
+          <Feature icon={<Lightbulb />} title="Suggestions" />
+        </div>
+      </section>
+    </section>
+  );
+}
+
+function Feature({ icon, title, onClick }) {
+  return <button className="feature" onClick={onClick}>{icon}<strong>{title}</strong><span>Open</span></button>;
+}
+
+function People({ employees, openPerson }) {
+  const [query, setQuery] = useState("");
+  const [department, setDepartment] = useState("All");
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return employees
+      .filter(e => e.status === "active")
+      .filter(e => department === "All" || e.department === department)
+      .filter(e => !q || `${e.fullName} ${e.role} ${e.department} ${e.favouriteProduct}`.toLowerCase().includes(q))
+      .sort((a,b) => a.fullName.localeCompare(b.fullName));
+  }, [query, department, employees]);
+
+  return (
+    <section>
+      <div className="pageIntro">
+        <p className="eyebrow">People</p>
+        <h1>Find anyone in under three seconds.</h1>
+        <p>If you pass someone in the car park, search their name, role or department and put a face to the name.</p>
+      </div>
+      <label className="searchBar"><Search size={21}/><input value={query} onChange={e => setQuery(e.target.value)} placeholder="Search by name, role, department or favourite product..." /></label>
+      <div className="departmentRail">
+        {departments.map(d => <button key={d} className={department === d ? "active" : ""} onClick={() => setDepartment(d)}>{d}</button>)}
+      </div>
+      <div className="peopleGrid">
+        {filtered.map(person => (
+          <button className="personCard" key={person.id} onClick={() => openPerson(person)}>
+            <Avatar />
+            <div><h3>{person.fullName}</h3><p>{person.role}</p><span>{person.department}</span></div>
+          </button>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function ProfileModal({ person, onClose }) {
+  if (!person) return null;
+  return (
+    <div className="modalBackground" onClick={onClose}>
+      <div className="profileModal" onClick={e => e.stopPropagation()}>
+        <Avatar large />
+        <h2>{person.fullName}</h2>
+        <p className="profileRole">{person.role}</p>
+        <div className="profileFacts">
+          <div><Building2 /><span>{person.department}</span></div>
+          <div><CalendarDays /><span>Started {formatDate(person.startDate)}</span></div>
+          <div><Trophy /><span>{yearsAtStokes(person.startDate)} years at Stokes</span></div>
+          <div><Heart /><span>Favourite product: {person.favouriteProduct}</span></div>
+          <div><Cake /><span>Birthday: {birthdayText(person)}</span></div>
+        </div>
+        <button className="primaryButton" onClick={onClose}>Close</button>
+      </div>
+    </div>
+  );
+}
+
+function Manager({ employees, setEmployees }) {
+  const [view, setView] = useState("active");
+  const shown = employees.filter(e => view === "active" ? e.status === "active" : e.status === "left");
+  const markLeft = id => setEmployees(prev => prev.map(e => e.id === id ? {...e, status:"left"} : e));
+  const restore = id => setEmployees(prev => prev.map(e => e.id === id ? {...e, status:"active"} : e));
+
+  return (
+    <section>
+      <div className="pageIntro">
+        <p className="eyebrow">Manager Portal</p>
+        <h1>Manage the team without clutter.</h1>
+        <p>Add people, edit profiles, mark employees as left, and restore former employees if they return.</p>
+      </div>
+      <div className="managerControls">
+        <button className="primaryButton"><Plus size={18}/> Add employee</button>
+        <button className={view === "active" ? "control active" : "control"} onClick={() => setView("active")}>Active</button>
+        <button className={view === "left" ? "control active" : "control"} onClick={() => setView("left")}>Former employees</button>
+      </div>
+      <div className="managerList">
+        {shown.map(person => (
+          <article key={person.id} className="managerRow">
+            <Avatar />
+            <div><strong>{person.fullName}</strong><p>{person.role} · {person.department}</p><small>{person.favouriteProduct}</small></div>
+            <div className="managerActions">
+              <button><Pencil size={16}/> Edit</button>
+              {person.status === "active"
+                ? <button onClick={() => markLeft(person.id)}>Mark as left</button>
+                : <button onClick={() => restore(person.id)}><RotateCcw size={16}/> Restore</button>}
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function PlaceholderPage({ title, icon, description }) {
+  return <section className="placeholder"><div className="placeholderIcon">{icon}</div><p className="eyebrow">Coming soon</p><h1>{title}</h1><p>{description}</p></section>;
+}
+
+function App() {
+  const [page, setPage] = useState("home");
+  const [employees, setEmployees] = useState(employeesSeed);
+  const [selectedPerson, setSelectedPerson] = useState(null);
+
+  const pages = {
+    home: <Home setPage={setPage} employees={employees} openPerson={setSelectedPerson} />,
+    people: <People employees={employees} openPerson={setSelectedPerson} />,
+    news: <PlaceholderPage title="Company News" icon={<Newspaper />} description="A premium place for important Stokes updates, announcements and achievements." />,
+    manager: <Manager employees={employees} setEmployees={setEmployees} />
+  };
+
+  return (
+    <main>
+      <nav className="nav">
+        <button className="brandButton" onClick={() => setPage("home")}><StokesLogo /></button>
+        <div className="navPill">
+          <button className={page === "home" ? "active" : ""} onClick={() => setPage("home")}>Home</button>
+          <button className={page === "people" ? "active" : ""} onClick={() => setPage("people")}>People</button>
+          <button className={page === "news" ? "active" : ""} onClick={() => setPage("news")}>News</button>
+          <button className={page === "manager" ? "active" : ""} onClick={() => setPage("manager")}>Manager</button>
+        </div>
+      </nav>
+      {pages[page]}
+      <ProfileModal person={selectedPerson} onClose={() => setSelectedPerson(null)} />
+    </main>
+  );
+}
+
+createRoot(document.getElementById("root")).render(<App />);
