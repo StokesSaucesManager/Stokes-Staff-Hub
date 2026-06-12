@@ -1,9 +1,9 @@
-# Stokes Staff Hub V4 Homepage Polish
+# Stokes Staff Hub V5 Products
 
-Homepage updated to match the cleaner premium layout:
-- Removed duplicate white logo inside hero panel
-- Kept official Stokes logo in the page header
-- Large plum hero with Good morning greeting
-- Prominent search bar
-- Clean dashboard cards underneath
-- Existing Supabase functionality unchanged
+Updates the Favourite Stokes Product dropdown.
+
+## Changes
+
+- Added individual Stokes products from the shop screenshots
+- Excluded bundles / packs / collections
+- Existing homepage, manager tools and Supabase functionality unchanged

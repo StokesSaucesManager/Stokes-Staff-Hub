@@ -42,14 +42,50 @@ const departments = [
 const departmentFilters = ["All", ...departments];
 
 const products = [
-  "Tomato Ketchup",
-  "Brown Sauce",
-  "Original BBQ Sauce",
+  "Real Tomato Ketchup",
+  "Reduced Sugar Real Tomato Ketchup",
+  "Chilli Ketchup",
+  "Chipotle Ketchup",
   "Real Mayonnaise",
   "Garlic Mayonnaise",
+  "Habanero Chilli Mayonnaise",
+  "Sicilian Lemon & Dill Mayonnaise",
+  "Mustard & Honey Mayonnaise",
+  "Real Brown Sauce",
+  "Original BBQ Sauce",
+  "Sweet & Sticky BBQ Sauce",
+  "Hot & Spicy BBQ Sauce",
+  "Korean BBQ Sauce",
   "Sweet Chilli Sauce",
+  "Habanero Hot Sauce",
+  "Hoisin Sauce",
+  "Burger Relish",
+  "Fig Relish",
+  "Beetroot Relish",
+  "Piccalilli",
   "Sticky Pickle",
-  "Burger Relish"
+  "Red Onion Marmalade",
+  "Chilli Jam",
+  "Beer Chutney",
+  "Spiced Mango Chutney",
+  "Cranberry Sauce",
+  "Cranberry & Orange Sauce with Ruby Port",
+  "Redcurrant Jelly",
+  "Mint Sauce",
+  "Bramley Apple Sauce",
+  "Strawberry Extra Jam",
+  "Blackcurrant Extra Jam",
+  "Raspberry Extra Jam",
+  "Seville Orange Marmalade",
+  "Coronation Sauce",
+  "Tartare Sauce",
+  "Cocktail Sauce",
+  "Mustard & Dill Sauce",
+  "Cider & Horseradish Wholegrain Mustard",
+  "Creamed Horseradish Sauce",
+  "Classic English Mustard",
+  "Dijon Mustard",
+  "Creamy Caesar Dressing"
 ];
 
 const fallbackEmployees = [
@@ -62,7 +98,7 @@ const fallbackEmployees = [
     birthday_day: 12,
     birthday_month: 6,
     birthday_year: null,
-    favourite_product: "Tomato Ketchup",
+    favourite_product: "Real Tomato Ketchup",
     status: "active",
     use_default_icon: true
   },
@@ -421,7 +457,7 @@ function defaultEmployee() {
     role: "",
     department: "Factory",
     start_date: "",
-    favourite_product: "Tomato Ketchup",
+    favourite_product: "Real Tomato Ketchup",
     birthday_day: "",
     birthday_month: "",
     birthday_year: "",
@@ -518,7 +554,7 @@ function EmployeeEditor({ editing, onSave, onCancel }) {
         </label>
 
         <select
-          value={form.favourite_product || "Tomato Ketchup"}
+          value={form.favourite_product || "Real Tomato Ketchup"}
           onChange={(e) => update("favourite_product", e.target.value)}
         >
           {products.map((p) => <option key={p}>{p}</option>)}
