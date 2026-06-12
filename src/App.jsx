@@ -136,10 +136,13 @@ function Avatar({ large = false }) {
   );
 }
 
-function StokesLogo() {
+function StokesLogo({ hero = false }) {
   return (
-    <div className="stokesLogo">
-      <img src="/stokes-logo.png" alt="Stokes Sauces For Food Lovers" />
+    <div className={hero ? "stokesLogo heroLogo" : "stokesLogo"}>
+      <img
+        src={hero ? "/stokes-logo-white.png" : "/stokes-logo-transparent.png"}
+        alt="Stokes Sauces For Food Lovers"
+      />
       <span>Staff Hub</span>
     </div>
   );
@@ -187,7 +190,7 @@ function Home({ setPage, employees, news, openPerson }) {
     <section className="home">
       <div className="hero">
         <div className="heroTop">
-          <StokesLogo />
+          <StokesLogo hero />
           <span className="taste">Taste without compromise</span>
         </div>
 

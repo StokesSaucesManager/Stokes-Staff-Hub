@@ -1,9 +1,9 @@
-# Stokes Staff Hub V3 Brand Polish
+# Stokes Staff Hub V3 Transparent Logo Fix
 
-Visual polish release focused on official Stokes branding.
+Fixes the Stokes logo so it no longer appears as a white cut-out rectangle.
 
-- Official Stokes logo asset added
-- Header logo replaced with official logo treatment
-- Hero logo plaque added
-- More premium plum and cream palette
-- Existing Supabase functionality unchanged
+## Changes
+- Added transparent dark Stokes logo for header
+- Added transparent white Stokes logo for plum hero section
+- Removed white plaque behind hero logo
+- Kept all existing app functionality unchanged

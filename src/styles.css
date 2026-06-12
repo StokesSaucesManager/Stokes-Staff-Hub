@@ -118,19 +118,21 @@ main {
 }
 
 .hero .stokesLogo {
-  background: rgba(255,255,255,.93);
-  border: 1px solid rgba(255,255,255,.5);
-  border-radius: 24px;
-  padding: 16px 18px 13px;
-  box-shadow: 0 22px 55px rgba(0,0,0,.16);
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  box-shadow: none;
 }
 
 .hero .stokesLogo img {
-  width: clamp(160px, 20vw, 260px);
+  width: clamp(170px, 22vw, 290px);
+  filter: drop-shadow(0 16px 34px rgba(0,0,0,.22));
 }
 
 .hero .stokesLogo span {
-  color: var(--plum);
+  color: rgba(255,255,255,.88);
+  text-shadow: 0 8px 20px rgba(0,0,0,.22);
 }
 
 .taste {
