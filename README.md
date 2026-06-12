@@ -1,22 +1,30 @@
-# Stokes Staff Hub Live Demo
+# Stokes Staff Hub V2
 
-Supabase-connected launchable demo.
+Clean rebuild of the Stokes Staff Hub.
 
 ## Includes
 
-- People directory reads employees from Supabase
-- Manager can add employees
-- Manager can edit employees
-- Manager can mark employees as left
-- Manager can restore former employees
-- Company news reads from Supabase
-- Manager can publish company news
+- Supabase-connected People directory
+- Manager dashboard
+- Add employee
+- Edit employee
+- Mark employee as left
+- Restore employee
+- Add company news
+- News page
+- Premium Stokes branding
+- Mobile-first layout
 
-## Required Vercel environment variables
+## Environment variables required in Vercel
 
-VITE_SUPABASE_URL
-VITE_SUPABASE_ANON_KEY
+- VITE_SUPABASE_URL
+- VITE_SUPABASE_ANON_KEY
 
-## Demo note
+## Supabase tables used
 
-For quick testing, this version expects permissive Supabase RLS policies. Tighten permissions before using real employee data.
+- employees
+- company_news
+
+## Important
+
+This is a launchable demo foundation. Before using live staff data, manager authentication and stricter Supabase RLS policies should be added.

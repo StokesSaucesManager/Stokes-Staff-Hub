@@ -1,9 +1,0 @@
-{
-  "name": "Stokes Staff Hub",
-  "short_name": "Staff Hub",
-  "start_url": "/",
-  "display": "standalone",
-  "background_color": "#fff8ef",
-  "theme_color": "#3b0037",
-  "icons": [{"src": "/icon.svg", "sizes": "any", "type": "image/svg+xml"}]
-}
