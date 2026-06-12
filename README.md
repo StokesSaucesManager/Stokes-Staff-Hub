@@ -1,24 +1,22 @@
-# Stokes Staff Hub
+# Stokes Staff Hub Live Demo
 
-A premium internal staff hub concept for Stokes.
+Supabase-connected launchable demo.
 
-This showcase version includes:
-- Stokes-branded homepage
-- People search
-- Department filtering
-- People profiles
-- Favourite Stokes product
-- Birthday display logic
-- Work anniversaries
-- New starters
-- Manager portal concept
-- Mark employee as left / restore employee
+## Includes
 
-Run locally:
+- People directory reads employees from Supabase
+- Manager can add employees
+- Manager can edit employees
+- Manager can mark employees as left
+- Manager can restore former employees
+- Company news reads from Supabase
+- Manager can publish company news
 
-```bash
-npm install
-npm run dev
-```
+## Required Vercel environment variables
 
-Deploy by pushing to GitHub. Vercel redeploys automatically.
+VITE_SUPABASE_URL
+VITE_SUPABASE_ANON_KEY
+
+## Demo note
+
+For quick testing, this version expects permissive Supabase RLS policies. Tighten permissions before using real employee data.
