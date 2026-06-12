@@ -318,15 +318,32 @@ function Manager({ employees, setEmployees, reloadEmployees, news, setNews, relo
       </div>
 
       <div className="managerControls">
-        <button className="primaryButton" onClick={() => { setEditing(null); setShowEmployeeForm(true); }}><Plus size={18}/> Add employee</button>
-        <button className="primaryButton" onClick={() => setShowNewsForm(true)}><Newspaper size={18}/> Add news</button>
+        <button type="button" className="primaryButton" onClick={() => { setEditing(null); setShowNewsForm(false); setShowEmployeeForm(true); }}><Plus size={18}/> Add employee</button>
+        <button type="button" className="primaryButton" onClick={() => { setShowEmployeeForm(false); setEditing(null); setShowNewsForm(true); }}><Newspaper size={18}/> Add news</button>
         <button className={view === "active" ? "control active" : "control"} onClick={() => setView("active")}>Active</button>
         <button className={view === "left" ? "control active" : "control"} onClick={() => setView("left")}>Former employees</button>
       </div>
 
       {message && <div className="notice">{message}</div>}
-      {showEmployeeForm && <EmployeeForm employee={editing} onSave={saveEmployee} onCancel={() => { setShowEmployeeForm(false); setEditing(null); }} />}
-      {showNewsForm && <NewsForm onSave={saveNews} onCancel={() => setShowNewsForm(false)} />}
+
+      {showEmployeeForm && (
+        <div className="editorPanel">
+          <EmployeeForm
+            employee={editing}
+            onSave={saveEmployee}
+            onCancel={() => { setShowEmployeeForm(false); setEditing(null); }}
+          />
+        </div>
+      )}
+
+      {showNewsForm && (
+        <div className="editorPanel">
+          <NewsForm
+            onSave={saveNews}
+            onCancel={() => setShowNewsForm(false)}
+          />
+        </div>
+      )}
 
       <div className="managerList">
         {shown.map(person => (
@@ -334,10 +351,10 @@ function Manager({ employees, setEmployees, reloadEmployees, news, setNews, relo
             <Avatar />
             <div><strong>{person.full_name}</strong><p>{person.role} · {person.department}</p><small>{person.favourite_product || "No favourite product set"}</small></div>
             <div className="managerActions">
-              <button onClick={() => { setEditing(person); setShowEmployeeForm(true); }}><Pencil size={16}/> Edit</button>
+              <button type="button" onClick={() => { setShowNewsForm(false); setEditing(person); setShowEmployeeForm(true); }}><Pencil size={16}/> Edit</button>
               {person.status === "active"
-                ? <button onClick={() => changeStatus(person, "left")}>Mark as left</button>
-                : <button onClick={() => changeStatus(person, "active")}><RotateCcw size={16}/> Restore</button>}
+                ? <button type="button" onClick={() => changeStatus(person, "left")}>Mark as left</button>
+                : <button type="button" onClick={() => changeStatus(person, "active")}><RotateCcw size={16}/> Restore</button>}
             </div>
           </article>
         ))}
