@@ -313,14 +313,14 @@ function Home({ setPage, employees, news, openPerson }) {
       <section className="browse browseSimple">
 
         <div className="browseGrid homeCardGrid">
-          <Feature icon={<Cake />} title="Birthdays" text="See who’s celebrating today" />
-          <Feature icon={<Trophy />} title="Anniversaries" text="Work anniversaries this month" />
-          <Feature icon={<UserPlus />} title="New Starters" text="Welcome our newest colleagues" />
+          <Feature icon={<Cake />} title="Birthdays" text="See who’s celebrating today" onClick={() => setPage("birthdays")} />
+          <Feature icon={<Trophy />} title="Anniversaries" text="Work anniversaries this month" onClick={() => setPage("anniversaries")} />
+          <Feature icon={<UserPlus />} title="New Starters" text="Welcome our newest colleagues" onClick={() => setPage("starters")} />
           <Feature icon={<Newspaper />} title="Company News" text="Latest updates and announcements" onClick={() => setPage("news")} />
-          <Feature icon={<CalendarDays />} title="Events" text="Upcoming events and important dates" />
-          <Feature icon={<BookOpen />} title="Training" text="Learning and development" />
-          <Feature icon={<Phone />} title="Contacts" text="Useful contacts and resources" />
-          <Feature icon={<Lightbulb />} title="Suggestions" text="Share ideas and make improvements" />
+          <Feature icon={<CalendarDays />} title="Events" text="Upcoming events and important dates" onClick={() => setPage("events")} />
+          <Feature icon={<BookOpen />} title="Training" text="Learning and development" onClick={() => setPage("training")} />
+          <Feature icon={<Phone />} title="Contacts" text="Useful contacts and resources" onClick={() => setPage("contacts")} />
+          <Feature icon={<Lightbulb />} title="Suggestions" text="Share ideas and make improvements" onClick={() => setPage("suggestions")} />
         </div>
       </section>
     </section>
@@ -421,6 +421,120 @@ function News({ news }) {
         <div className="empty">
           <strong>No news yet</strong>
           <p>Managers can add company news from the Manager Portal.</p>
+        </div>
+      )}
+    </section>
+  );
+}
+
+
+function BirthdaysPage({ employees, openPerson }) {
+  const withBirthdays = employees
+    .filter((e) => e.status === "active" && e.birthday_day && e.birthday_month)
+    .sort((a, b) => (a.birthday_month * 100 + a.birthday_day) - (b.birthday_month * 100 + b.birthday_day));
+
+  return (
+    <section>
+      <div className="pageIntro">
+        <p className="eyebrow">Birthdays</p>
+        <h1>Celebrate the people at Stokes.</h1>
+        <p>Only the day and month need to be shown. The year stays optional.</p>
+      </div>
+
+      <div className="peopleGrid">
+        {withBirthdays.map((person) => (
+          <button className="personCard" type="button" key={person.id} onClick={() => openPerson(person)}>
+            <Avatar />
+            <div>
+              <h3>{person.full_name}</h3>
+              <p>{birthdayText(person)}</p>
+              <span>{person.favourite_product || "Favourite product not set"}</span>
+            </div>
+          </button>
+        ))}
+      </div>
+
+      {withBirthdays.length === 0 && (
+        <div className="empty"><strong>No birthdays yet</strong><p>Add birthdays from the Manager page.</p></div>
+      )}
+    </section>
+  );
+}
+
+function AnniversariesPage({ employees, openPerson }) {
+  const active = employees
+    .filter((e) => e.status === "active" && e.start_date)
+    .sort((a, b) => yearsAtStokes(b.start_date) - yearsAtStokes(a.start_date));
+
+  return (
+    <section>
+      <div className="pageIntro">
+        <p className="eyebrow">Work Anniversaries</p>
+        <h1>Recognise service and loyalty.</h1>
+        <p>See how long each colleague has been part of Stokes.</p>
+      </div>
+
+      <div className="peopleGrid">
+        {active.map((person) => (
+          <button className="personCard" type="button" key={person.id} onClick={() => openPerson(person)}>
+            <Avatar />
+            <div>
+              <h3>{person.full_name}</h3>
+              <p>{yearsAtStokes(person.start_date)} years at Stokes</p>
+              <span>Started {formatDate(person.start_date)}</span>
+            </div>
+          </button>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function StartersPage({ employees, openPerson }) {
+  const starters = employees
+    .filter((e) => e.status === "active" && isNewStarter(e.start_date))
+    .sort((a, b) => new Date(b.start_date) - new Date(a.start_date));
+
+  return (
+    <section>
+      <div className="pageIntro">
+        <p className="eyebrow">New Starters</p>
+        <h1>Welcome our newest colleagues.</h1>
+        <p>Anyone who joined recently appears here so people can put names to faces.</p>
+      </div>
+
+      <div className="peopleGrid">
+        {starters.map((person) => (
+          <button className="personCard" type="button" key={person.id} onClick={() => openPerson(person)}>
+            <Avatar />
+            <div>
+              <h3>{person.full_name}</h3>
+              <p>{person.role}</p>
+              <span>{person.department}</span>
+            </div>
+          </button>
+        ))}
+      </div>
+
+      {starters.length === 0 && (
+        <div className="empty"><strong>No new starters currently</strong><p>New starters will appear here automatically after being added.</p></div>
+      )}
+    </section>
+  );
+}
+
+function SimpleHubPage({ eyebrow, title, description, icon, children }) {
+  return (
+    <section>
+      <div className="pageIntro">
+        <p className="eyebrow">{eyebrow}</p>
+        <h1>{title}</h1>
+        <p>{description}</p>
+      </div>
+      {children || (
+        <div className="empty">
+          <strong>Coming next</strong>
+          <p>This section is ready as a page. Next we’ll connect it to the Manager Portal so you can update it from your phone.</p>
         </div>
       )}
     </section>
@@ -843,10 +957,13 @@ function App() {
     home: <Home setPage={setPage} employees={employees} news={news} openPerson={setSelectedPerson} />,
     people: <People employees={employees} openPerson={setSelectedPerson} />,
     news: <News news={news} />,
-    events: <PlaceholderPage title="Events" icon={<CalendarDays />} description="Upcoming BBQs, charity days, training sessions and company events." />,
-    training: <PlaceholderPage title="Training" icon={<BookOpen />} description="Training documents, induction material and useful resources." />,
-    contacts: <PlaceholderPage title="Useful Contacts" icon={<Phone />} description="Find HR, maintenance, first aiders, managers and key contacts quickly." />,
-    suggestions: <PlaceholderPage title="Suggestions" icon={<Lightbulb />} description="A simple way for staff to share ideas to improve Stokes." />,
+    birthdays: <BirthdaysPage employees={employees} openPerson={setSelectedPerson} />,
+    anniversaries: <AnniversariesPage employees={employees} openPerson={setSelectedPerson} />,
+    starters: <StartersPage employees={employees} openPerson={setSelectedPerson} />,
+    events: <SimpleHubPage eyebrow="Events" title="Upcoming events at Stokes." description="BBQs, charity days, training sessions, fire drills and important dates will appear here." icon={<CalendarDays />} />,
+    training: <SimpleHubPage eyebrow="Training" title="Training and resources." description="A simple place for induction material, food safety, fire training and useful documents." icon={<BookOpen />} />,
+    contacts: <SimpleHubPage eyebrow="Useful Contacts" title="Find the right person quickly." description="HR, maintenance, first aiders, managers and key internal contacts will appear here." icon={<Phone />} />,
+    suggestions: <SimpleHubPage eyebrow="Suggestions" title="Share ideas to improve Stokes." description="Staff suggestions can be collected here and reviewed by managers." icon={<Lightbulb />} />,
     manager: (
       <Manager
         employees={employees}

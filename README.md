@@ -1,9 +1,12 @@
-# Stokes Staff Hub V5 Products
+# Stokes Staff Hub V6 Clickable Cards
 
-Updates the Favourite Stokes Product dropdown.
+Makes the homepage dashboard cards open their own pages.
 
 ## Changes
 
-- Added individual Stokes products from the shop screenshots
-- Excluded bundles / packs / collections
-- Existing homepage, manager tools and Supabase functionality unchanged
+- Birthdays card opens Birthdays page
+- Anniversaries card opens Work Anniversaries page
+- New Starters card opens New Starters page
+- Events, Training, Contacts and Suggestions open placeholder pages
+- Company News still opens the News page
+- Existing manager and Supabase functionality unchanged
