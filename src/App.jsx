@@ -157,12 +157,15 @@ function Notice({ type = "info", children }) {
   );
 }
 
-function Feature({ icon, title, onClick }) {
+function Feature({ icon, title, text, onClick }) {
   return (
     <button className="feature" type="button" onClick={onClick}>
-      {icon}
-      <strong>{title}</strong>
-      <span>Open</span>
+      <div className="featureIcon">{icon}</div>
+      <div>
+        <strong>{title}</strong>
+        <span>{text || "Open"}</span>
+      </div>
+      <b>→</b>
     </button>
   );
 }
@@ -189,8 +192,8 @@ function Home({ setPage, employees, news, openPerson }) {
   return (
     <section className="home">
       <div className="hero">
-        <div className="heroTop">
-          <StokesLogo hero />
+        <div className="heroTop heroTopMinimal">
+          <span></span>
           <span className="taste">Taste without compromise</span>
         </div>
 
@@ -271,22 +274,17 @@ function Home({ setPage, employees, news, openPerson }) {
         </div>
       </section>
 
-      <section className="browse">
-        <div className="sectionHeader">
-          <p className="eyebrow">Explore</p>
-          <h2>Everything staff need, in one place.</h2>
-        </div>
+      <section className="browse browseSimple">
 
-        <div className="browseGrid">
-          <Feature icon={<Users />} title="People" onClick={() => setPage("people")} />
-          <Feature icon={<Newspaper />} title="Company News" onClick={() => setPage("news")} />
-          <Feature icon={<Cake />} title="Birthdays" />
-          <Feature icon={<Trophy />} title="Work Anniversaries" />
-          <Feature icon={<UserPlus />} title="New Starters" />
-          <Feature icon={<CalendarDays />} title="Events" />
-          <Feature icon={<BookOpen />} title="Training" />
-          <Feature icon={<Phone />} title="Useful Contacts" />
-          <Feature icon={<Lightbulb />} title="Suggestions" />
+        <div className="browseGrid homeCardGrid">
+          <Feature icon={<Cake />} title="Birthdays" text="See who’s celebrating today" />
+          <Feature icon={<Trophy />} title="Anniversaries" text="Work anniversaries this month" />
+          <Feature icon={<UserPlus />} title="New Starters" text="Welcome our newest colleagues" />
+          <Feature icon={<Newspaper />} title="Company News" text="Latest updates and announcements" onClick={() => setPage("news")} />
+          <Feature icon={<CalendarDays />} title="Events" text="Upcoming events and important dates" />
+          <Feature icon={<BookOpen />} title="Training" text="Learning and development" />
+          <Feature icon={<Phone />} title="Contacts" text="Useful contacts and resources" />
+          <Feature icon={<Lightbulb />} title="Suggestions" text="Share ideas and make improvements" />
         </div>
       </section>
     </section>

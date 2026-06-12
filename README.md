@@ -1,9 +1,9 @@
-# Stokes Staff Hub V3 Transparent Logo Fix
+# Stokes Staff Hub V4 Homepage Polish
 
-Fixes the Stokes logo so it no longer appears as a white cut-out rectangle.
-
-## Changes
-- Added transparent dark Stokes logo for header
-- Added transparent white Stokes logo for plum hero section
-- Removed white plaque behind hero logo
-- Kept all existing app functionality unchanged
+Homepage updated to match the cleaner premium layout:
+- Removed duplicate white logo inside hero panel
+- Kept official Stokes logo in the page header
+- Large plum hero with Good morning greeting
+- Prominent search bar
+- Clean dashboard cards underneath
+- Existing Supabase functionality unchanged
