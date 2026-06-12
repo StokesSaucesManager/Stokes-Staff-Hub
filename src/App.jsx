@@ -164,6 +164,18 @@ function birthdayText(person) {
   return person.birthday_year ? `${dayMonth} ${person.birthday_year}` : dayMonth;
 }
 
+function isBirthdayToday(person) {
+  const today = new Date();
+  return Number(person?.birthday_day) === today.getDate() && Number(person?.birthday_month) === today.getMonth() + 1;
+}
+
+function isAnniversaryToday(person) {
+  if (!person?.start_date) return false;
+  const today = new Date();
+  const start = new Date(person.start_date + "T00:00:00");
+  return start.getDate() === today.getDate() && start.getMonth() === today.getMonth() && yearsAtStokes(person.start_date) > 0;
+}
+
 function Avatar({ large = false }) {
   return (
     <div className={large ? "avatar avatarLarge" : "avatar"}>
@@ -541,6 +553,216 @@ function SimpleHubPage({ eyebrow, title, description, icon, children }) {
   );
 }
 
+
+function BirthdaysPage({ employees, openPerson }) {
+  const todayBirthdays = employees
+    .filter((e) => e.status === "active" && isBirthdayToday(e))
+    .sort((a, b) => a.full_name.localeCompare(b.full_name));
+
+  return (
+    <section>
+      <div className="pageIntro">
+        <p className="eyebrow">Birthdays Today</p>
+        <h1>Today’s birthdays.</h1>
+        <p>Only colleagues celebrating a birthday today appear here.</p>
+      </div>
+
+      <div className="peopleGrid">
+        {todayBirthdays.map((person) => (
+          <button className="personCard" type="button" key={person.id} onClick={() => openPerson(person)}>
+            <Avatar />
+            <div>
+              <h3>{person.full_name}</h3>
+              <p>Happy birthday 🎉</p>
+              <span>{person.favourite_product || "Favourite product not set"}</span>
+            </div>
+          </button>
+        ))}
+      </div>
+
+      {todayBirthdays.length === 0 && (
+        <div className="empty">
+          <strong>No birthdays today</strong>
+          <p>When someone has a birthday today, they’ll appear here automatically.</p>
+        </div>
+      )}
+    </section>
+  );
+}
+
+function AnniversariesPage({ employees, openPerson }) {
+  const todayAnniversaries = employees
+    .filter((e) => e.status === "active" && isAnniversaryToday(e))
+    .sort((a, b) => a.full_name.localeCompare(b.full_name));
+
+  return (
+    <section>
+      <div className="pageIntro">
+        <p className="eyebrow">Work Anniversaries Today</p>
+        <h1>Today’s work anniversaries.</h1>
+        <p>Only colleagues celebrating a work anniversary today appear here.</p>
+      </div>
+
+      <div className="peopleGrid">
+        {todayAnniversaries.map((person) => (
+          <button className="personCard" type="button" key={person.id} onClick={() => openPerson(person)}>
+            <Avatar />
+            <div>
+              <h3>{person.full_name}</h3>
+              <p>{yearsAtStokes(person.start_date)} years at Stokes</p>
+              <span>Started {formatDate(person.start_date)}</span>
+            </div>
+          </button>
+        ))}
+      </div>
+
+      {todayAnniversaries.length === 0 && (
+        <div className="empty">
+          <strong>No work anniversaries today</strong>
+          <p>When someone reaches their anniversary today, they’ll appear here automatically.</p>
+        </div>
+      )}
+    </section>
+  );
+}
+
+function StartersPage({ employees, openPerson }) {
+  const starters = employees
+    .filter((e) => e.status === "active" && isNewStarter(e.start_date))
+    .sort((a, b) => new Date(b.start_date) - new Date(a.start_date));
+
+  return (
+    <section>
+      <div className="pageIntro">
+        <p className="eyebrow">New Starters</p>
+        <h1>Welcome our newest colleagues.</h1>
+        <p>Recently added colleagues appear here automatically.</p>
+      </div>
+
+      <div className="peopleGrid">
+        {starters.map((person) => (
+          <button className="personCard" type="button" key={person.id} onClick={() => openPerson(person)}>
+            <Avatar />
+            <div>
+              <h3>{person.full_name}</h3>
+              <p>{person.role}</p>
+              <span>{person.department}</span>
+            </div>
+          </button>
+        ))}
+      </div>
+
+      {starters.length === 0 && (
+        <div className="empty">
+          <strong>No new starters currently</strong>
+          <p>Anyone added with a recent start date will appear here.</p>
+        </div>
+      )}
+    </section>
+  );
+}
+
+function TrainingPeoplePage({ employees, openPerson }) {
+  const [trainingFilter, setTrainingFilter] = useState("Forklift");
+
+  const filtered = employees
+    .filter((e) => e.status === "active")
+    .filter((e) => {
+      if (trainingFilter === "Forklift") return Boolean(e.forklift_trained);
+      if (trainingFilter === "First Aid") return Boolean(e.first_aid_trained);
+      return Boolean(e.forklift_trained || e.first_aid_trained);
+    })
+    .sort((a, b) => a.full_name.localeCompare(b.full_name));
+
+  return (
+    <section>
+      <div className="pageIntro">
+        <p className="eyebrow">Training</p>
+        <h1>Training and qualified people.</h1>
+        <p>Find who is trained for Forklift and First Aid. Some colleagues may appear in both.</p>
+      </div>
+
+      <div className="departmentRail">
+        {["Forklift", "First Aid", "All"].map((item) => (
+          <button
+            type="button"
+            key={item}
+            className={trainingFilter === item ? "active" : ""}
+            onClick={() => setTrainingFilter(item)}
+          >
+            {item}
+          </button>
+        ))}
+      </div>
+
+      <div className="peopleGrid">
+        {filtered.map((person) => (
+          <button className="personCard" type="button" key={person.id} onClick={() => openPerson(person)}>
+            <Avatar />
+            <div>
+              <h3>{person.full_name}</h3>
+              <p>{person.role}</p>
+              <span>
+                {[
+                  person.forklift_trained ? "Forklift" : null,
+                  person.first_aid_trained ? "First Aid" : null
+                ].filter(Boolean).join(" · ")}
+              </span>
+            </div>
+          </button>
+        ))}
+      </div>
+
+      {filtered.length === 0 && (
+        <div className="empty">
+          <strong>No {trainingFilter === "All" ? "training records" : trainingFilter + " records"} yet</strong>
+          <p>Go to Manager, edit an employee, then tick Forklift trained or First Aid trained.</p>
+        </div>
+      )}
+    </section>
+  );
+}
+
+function EventsPage() {
+  return (
+    <section>
+      <div className="pageIntro">
+        <p className="eyebrow">Events</p>
+        <h1>Upcoming events at Stokes.</h1>
+        <p>BBQs, charity days, training sessions, fire drills and important dates will appear here.</p>
+      </div>
+      <div className="empty"><strong>Ready for events</strong><p>Next step: add an events editor in the Manager Portal.</p></div>
+    </section>
+  );
+}
+
+function ContactsPage() {
+  return (
+    <section>
+      <div className="pageIntro">
+        <p className="eyebrow">Useful Contacts</p>
+        <h1>Find the right person quickly.</h1>
+        <p>HR, maintenance, first aiders, managers and key internal contacts will appear here.</p>
+      </div>
+      <div className="empty"><strong>Ready for contacts</strong><p>Next step: add contact editing in the Manager Portal.</p></div>
+    </section>
+  );
+}
+
+function SuggestionsPage() {
+  return (
+    <section>
+      <div className="pageIntro">
+        <p className="eyebrow">Suggestions</p>
+        <h1>Share ideas to improve Stokes.</h1>
+        <p>A simple place for staff to suggest improvements.</p>
+      </div>
+      <div className="empty"><strong>Ready for suggestions</strong><p>Next step: add a suggestion form that saves to Supabase.</p></div>
+    </section>
+  );
+}
+
+
 function ProfileModal({ person, onClose }) {
   if (!person) return null;
 
@@ -577,7 +799,9 @@ function defaultEmployee() {
     birthday_year: "",
     status: "active",
     use_default_icon: true,
-    photo_url: ""
+    photo_url: "",
+    forklift_trained: false,
+    first_aid_trained: false
   };
 }
 
@@ -593,7 +817,9 @@ function cleanEmployeeForSave(form) {
     birthday_year: form.birthday_year ? Number(form.birthday_year) : null,
     status: form.status || "active",
     use_default_icon: true,
-    photo_url: form.photo_url || null
+    photo_url: form.photo_url || null,
+    forklift_trained: Boolean(form.forklift_trained),
+    first_aid_trained: Boolean(form.first_aid_trained)
   };
 
   if (form.id && !String(form.id).startsWith("demo-")) payload.id = form.id;
@@ -705,6 +931,26 @@ function EmployeeEditor({ editing, onSave, onCancel }) {
           value={form.birthday_year}
           onChange={(e) => update("birthday_year", e.target.value)}
         />
+      </div>
+
+      <div className="trainingChecks">
+        <label>
+          <input
+            type="checkbox"
+            checked={Boolean(form.forklift_trained)}
+            onChange={(e) => update("forklift_trained", e.target.checked)}
+          />
+          Forklift trained
+        </label>
+
+        <label>
+          <input
+            type="checkbox"
+            checked={Boolean(form.first_aid_trained)}
+            onChange={(e) => update("first_aid_trained", e.target.checked)}
+          />
+          First Aid trained
+        </label>
       </div>
 
       <button type="submit" className="primaryButton">
@@ -960,10 +1206,10 @@ function App() {
     birthdays: <BirthdaysPage employees={employees} openPerson={setSelectedPerson} />,
     anniversaries: <AnniversariesPage employees={employees} openPerson={setSelectedPerson} />,
     starters: <StartersPage employees={employees} openPerson={setSelectedPerson} />,
-    events: <SimpleHubPage eyebrow="Events" title="Upcoming events at Stokes." description="BBQs, charity days, training sessions, fire drills and important dates will appear here." icon={<CalendarDays />} />,
-    training: <SimpleHubPage eyebrow="Training" title="Training and resources." description="A simple place for induction material, food safety, fire training and useful documents." icon={<BookOpen />} />,
-    contacts: <SimpleHubPage eyebrow="Useful Contacts" title="Find the right person quickly." description="HR, maintenance, first aiders, managers and key internal contacts will appear here." icon={<Phone />} />,
-    suggestions: <SimpleHubPage eyebrow="Suggestions" title="Share ideas to improve Stokes." description="Staff suggestions can be collected here and reviewed by managers." icon={<Lightbulb />} />,
+    events: <EventsPage />,
+    training: <TrainingPeoplePage employees={employees} openPerson={setSelectedPerson} />,
+    contacts: <ContactsPage />,
+    suggestions: <SuggestionsPage />,
     manager: (
       <Manager
         employees={employees}
