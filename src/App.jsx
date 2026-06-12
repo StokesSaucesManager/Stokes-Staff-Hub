@@ -139,8 +139,8 @@ function Avatar({ large = false }) {
 function StokesLogo() {
   return (
     <div className="stokesLogo">
-      <div className="logoWord">Stokes</div>
-      <div className="logoRibbon">Sauces For Food Lovers</div>
+      <img src="/stokes-logo.png" alt="Stokes Sauces For Food Lovers" />
+      <span>Staff Hub</span>
     </div>
   );
 }
@@ -191,7 +191,7 @@ function Home({ setPage, employees, news, openPerson }) {
           <span className="taste">Taste without compromise</span>
         </div>
 
-        <h1>Good morning</h1>
+        <h1>Good morning,</h1>
         <p>Welcome to the Stokes Staff Hub.</p>
 
         <div className="heroSearch">

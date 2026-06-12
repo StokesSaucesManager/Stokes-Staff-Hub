@@ -1,30 +1,9 @@
-# Stokes Staff Hub V2
+# Stokes Staff Hub V3 Brand Polish
 
-Clean rebuild of the Stokes Staff Hub.
+Visual polish release focused on official Stokes branding.
 
-## Includes
-
-- Supabase-connected People directory
-- Manager dashboard
-- Add employee
-- Edit employee
-- Mark employee as left
-- Restore employee
-- Add company news
-- News page
-- Premium Stokes branding
-- Mobile-first layout
-
-## Environment variables required in Vercel
-
-- VITE_SUPABASE_URL
-- VITE_SUPABASE_ANON_KEY
-
-## Supabase tables used
-
-- employees
-- company_news
-
-## Important
-
-This is a launchable demo foundation. Before using live staff data, manager authentication and stricter Supabase RLS policies should be added.
+- Official Stokes logo asset added
+- Header logo replaced with official logo treatment
+- Hero logo plaque added
+- More premium plum and cream palette
+- Existing Supabase functionality unchanged
