@@ -1,15 +1,15 @@
-# Stokes Staff Hub V8 Core Pages Fixed
-
-Fixed build version.
+# Stokes Staff Hub V9 Manager Login
 
 ## Changes
-- Birthdays only shows birthdays today
-- Anniversaries only shows work anniversaries today
-- Training page shows Forklift and First Aid trained people
-- Manager editor includes Forklift trained and First Aid trained checkboxes
 
-## Supabase SQL needed once
+- Manager page now requires Supabase email/password login
+- Manager can sign out
+- Staff can still view Home, People and News without logging in
+- Existing manager tools are unchanged once logged in
 
-alter table employees
-add column if not exists forklift_trained boolean default false,
-add column if not exists first_aid_trained boolean default false;
+## Supabase setup needed
+
+Create a manager user in:
+Supabase → Authentication → Users → Add user
+
+Then run the security SQL provided in chat to restrict writes to authenticated users.

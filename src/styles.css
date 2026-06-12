@@ -821,3 +821,77 @@ main {
   width: auto;
   accent-color: var(--plum);
 }
+
+
+.loginCard {
+  width: min(520px, 100%);
+  background: rgba(255,255,255,.9);
+  border: 1px solid var(--line);
+  border-radius: 30px;
+  padding: 26px;
+  box-shadow: var(--shadow);
+  display: grid;
+  gap: 14px;
+}
+
+.loginCard h2 {
+  margin: 0;
+  color: var(--plum);
+  font-family: Georgia, serif;
+  font-size: 34px;
+  letter-spacing: -.04em;
+}
+
+.loginCard input {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 14px;
+  background: #fffdf8;
+}
+
+.loginIcon {
+  width: 58px;
+  height: 58px;
+  display: grid;
+  place-items: center;
+  border-radius: 20px;
+  background: var(--cream);
+  color: var(--plum);
+  border: 1px solid var(--line);
+}
+
+.managerIntro {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.secondaryButton {
+  background: rgba(255,255,255,.86);
+  color: var(--plum);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 11px 14px;
+  font-weight: 900;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  white-space: nowrap;
+}
+
+.primaryButton:disabled {
+  opacity: .65;
+  cursor: not-allowed;
+}
+
+@media(max-width: 720px) {
+  .managerIntro {
+    display: block;
+  }
+
+  .secondaryButton {
+    margin-top: 14px;
+  }
+}

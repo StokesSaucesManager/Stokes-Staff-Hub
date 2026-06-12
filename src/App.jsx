@@ -22,7 +22,9 @@ import {
   Save,
   X,
   AlertCircle,
-  CheckCircle2
+  CheckCircle2,
+  Lock,
+  LogOut
 } from "lucide-react";
 import { supabase } from "./supabaseClient";
 import "./styles.css";
@@ -874,7 +876,77 @@ function NewsEditor({ onSave }) {
   );
 }
 
-function Manager({ employees, setEmployees, reloadEmployees, news, reloadNews }) {
+
+function ManagerLogin({ onLoggedIn }) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [notice, setNotice] = useState(null);
+  const [busy, setBusy] = useState(false);
+
+  async function login(e) {
+    e.preventDefault();
+    setNotice(null);
+
+    if (!supabase) {
+      setNotice({ type: "error", text: "Supabase is not connected." });
+      return;
+    }
+
+    setBusy(true);
+    const { error } = await supabase.auth.signInWithPassword({
+      email: email.trim(),
+      password
+    });
+    setBusy(false);
+
+    if (error) {
+      setNotice({ type: "error", text: error.message });
+      return;
+    }
+
+    setNotice({ type: "success", text: "Logged in." });
+    onLoggedIn();
+  }
+
+  return (
+    <section>
+      <div className="pageIntro">
+        <p className="eyebrow">Manager Login</p>
+        <h1>Manager access only.</h1>
+        <p>Log in to add employees, edit profiles, mark employees as left and post company news.</p>
+      </div>
+
+      {notice && <Notice type={notice.type}>{notice.text}</Notice>}
+
+      <form className="loginCard" onSubmit={login}>
+        <div className="loginIcon"><Lock size={28} /></div>
+        <h2>Sign in to Manager Portal</h2>
+
+        <input
+          required
+          type="email"
+          placeholder="Manager email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+
+        <input
+          required
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+
+        <button type="submit" className="primaryButton" disabled={busy}>
+          {busy ? "Signing in..." : "Sign in"}
+        </button>
+      </form>
+    </section>
+  );
+}
+
+function Manager({ employees, setEmployees, reloadEmployees, news, reloadNews, session, onLogout }) {
   const [view, setView] = useState("active");
   const [editing, setEditing] = useState(null);
   const [notice, setNotice] = useState(null);
@@ -959,10 +1031,17 @@ function Manager({ employees, setEmployees, reloadEmployees, news, reloadNews })
 
   return (
     <section>
-      <div className="pageIntro">
-        <p className="eyebrow">Manager Portal</p>
-        <h1>Manage the team without clutter.</h1>
-        <p>Add people, edit profiles, mark employees as left, restore former employees, and publish company news.</p>
+      <div className="pageIntro managerIntro">
+        <div>
+          <p className="eyebrow">Manager Portal</p>
+          <h1>Manage the team without clutter.</h1>
+          <p>Add people, edit profiles, mark employees as left, restore former employees, and publish company news.</p>
+        </div>
+
+        <button type="button" className="secondaryButton" onClick={onLogout}>
+          <LogOut size={17} />
+          Sign out
+        </button>
       </div>
 
       {notice && <Notice type={notice.type}>{notice.text}</Notice>}
@@ -1046,6 +1125,7 @@ function App() {
   const [news, setNews] = useState([]);
   const [selectedPerson, setSelectedPerson] = useState(null);
   const [loadNotice, setLoadNotice] = useState(null);
+  const [session, setSession] = useState(null);
 
   async function loadEmployees() {
     if (!supabase) {
@@ -1084,7 +1164,28 @@ function App() {
   useEffect(() => {
     loadEmployees();
     loadNews();
+
+    if (!supabase) return;
+
+    supabase.auth.getSession().then(({ data }) => {
+      setSession(data.session || null);
+    });
+
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      setSession(nextSession || null);
+    });
+
+    return () => {
+      listener?.subscription?.unsubscribe();
+    };
   }, []);
+
+  async function logoutManager() {
+    if (supabase) {
+      await supabase.auth.signOut();
+    }
+    setSession(null);
+  }
 
   const pages = {
     home: <Home setPage={setPage} employees={employees} news={news} openPerson={setSelectedPerson} />,
@@ -1097,14 +1198,18 @@ function App() {
     training: <TrainingPeoplePage employees={employees} openPerson={setSelectedPerson} />,
     contacts: <ContactsPage />,
     suggestions: <SuggestionsPage />,
-    manager: (
+    manager: session ? (
       <Manager
         employees={employees}
         setEmployees={setEmployees}
         reloadEmployees={loadEmployees}
         news={news}
         reloadNews={loadNews}
+        session={session}
+        onLogout={logoutManager}
       />
+    ) : (
+      <ManagerLogin onLoggedIn={() => loadEmployees()} />
     )
   };
 
