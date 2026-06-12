@@ -1,16 +1,14 @@
-# Stokes Staff Hub V8 Core Pages
+# Stokes Staff Hub V8 Core Pages Fixed
+
+Fixed build version.
 
 ## Changes
+- Birthdays only shows birthdays today
+- Anniversaries only shows work anniversaries today
+- Training page shows Forklift and First Aid trained people
+- Manager editor includes Forklift trained and First Aid trained checkboxes
 
-- Birthdays now only shows birthdays today
-- Anniversaries now only shows work anniversaries today
-- Training page now shows people trained in Forklift and First Aid
-- Manager employee editor includes Forklift trained and First Aid trained checkboxes
-- Events, Contacts and Suggestions now have real pages instead of generic placeholders
-
-## Supabase SQL needed
-
-Run this once:
+## Supabase SQL needed once
 
 alter table employees
 add column if not exists forklift_trained boolean default false,
