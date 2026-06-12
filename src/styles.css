@@ -797,3 +797,27 @@ main {
     margin-bottom: 28px;
   }
 }
+
+
+.trainingChecks {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.trainingChecks label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--cream);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 11px 14px;
+  color: var(--plum);
+  font-weight: 850;
+}
+
+.trainingChecks input {
+  width: auto;
+  accent-color: var(--plum);
+}

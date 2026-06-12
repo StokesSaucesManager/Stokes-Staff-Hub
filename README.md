@@ -1,12 +1,17 @@
-# Stokes Staff Hub V6 Clickable Cards
-
-Makes the homepage dashboard cards open their own pages.
+# Stokes Staff Hub V7 Today + Training
 
 ## Changes
 
-- Birthdays card opens Birthdays page
-- Anniversaries card opens Work Anniversaries page
-- New Starters card opens New Starters page
-- Events, Training, Contacts and Suggestions open placeholder pages
-- Company News still opens the News page
-- Existing manager and Supabase functionality unchanged
+- Birthdays page only shows people with birthdays today
+- Work anniversaries page only shows people celebrating today
+- Training page now works like a people page
+- Training can be filtered by Forklift, First Aid, or All
+- Manager employee form includes Forklift trained and First Aid trained checkboxes
+
+## Supabase SQL needed
+
+Run this once in Supabase before using the training checkboxes:
+
+alter table employees
+add column if not exists forklift_trained boolean default false,
+add column if not exists first_aid_trained boolean default false;
