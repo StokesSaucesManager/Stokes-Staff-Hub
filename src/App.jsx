@@ -24,7 +24,10 @@ import {
   AlertCircle,
   CheckCircle2,
   Lock,
-  LogOut
+  LogOut,
+  Trash2,
+  Eye,
+  EyeOff
 } from "lucide-react";
 import { supabase } from "./supabaseClient";
 import "./styles.css";
@@ -138,6 +141,17 @@ function formatDate(date) {
     day: "numeric",
     month: "long",
     year: "numeric"
+  });
+}
+
+function formatDateTime(value) {
+  if (!value) return "Not set";
+  return new Date(value).toLocaleString("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit"
   });
 }
 
@@ -426,7 +440,7 @@ function News({ news }) {
           <article className="newsCard" key={item.id}>
             <p className="eyebrow">News</p>
             <h2>{item.title}</h2>
-            <p>{item.body}</p>
+            <p>{item.body || item.description || ""}</p>
           </article>
         ))}
       </div>
@@ -946,10 +960,318 @@ function ManagerLogin({ onLoggedIn }) {
   );
 }
 
-function Manager({ employees, setEmployees, reloadEmployees, news, reloadNews, session, onLogout }) {
+
+function NewsManager({ news, reloadNews, setNotice }) {
+  const [editing, setEditing] = useState(null);
+  const [title, setTitle] = useState("");
+  const [body, setBody] = useState("");
+
+  useEffect(() => {
+    if (editing) {
+      setTitle(editing.title || "");
+      setBody(editing.body || "");
+    } else {
+      setTitle("");
+      setBody("");
+    }
+  }, [editing]);
+
+  async function saveNews(e) {
+    e.preventDefault();
+    setNotice(null);
+
+    if (!supabase) {
+      setNotice({ type: "error", text: "Supabase is not connected." });
+      return;
+    }
+
+    const payload = { title: title.trim(), body: body.trim(), published: true };
+
+    const { error } = editing
+      ? await supabase.from("company_news").update(payload).eq("id", editing.id)
+      : await supabase.from("company_news").insert([payload]);
+
+    if (error) {
+      setNotice({ type: "error", text: error.message });
+      return;
+    }
+
+    setNotice({ type: "success", text: editing ? "Company news updated." : "Company news published." });
+    setEditing(null);
+    setTitle("");
+    setBody("");
+    await reloadNews();
+  }
+
+  async function togglePublished(item) {
+    setNotice(null);
+    const { error } = await supabase.from("company_news").update({ published: !item.published }).eq("id", item.id);
+    if (error) {
+      setNotice({ type: "error", text: error.message });
+      return;
+    }
+    await reloadNews();
+  }
+
+  async function deleteNews(item) {
+    if (!window.confirm("Delete this news item?")) return;
+    setNotice(null);
+    const { error } = await supabase.from("company_news").delete().eq("id", item.id);
+    if (error) {
+      setNotice({ type: "error", text: error.message });
+      return;
+    }
+    setNotice({ type: "success", text: "Company news deleted." });
+    await reloadNews();
+  }
+
+  return (
+    <section className="managerSection">
+      <div className="managerSectionHeader">
+        <div>
+          <p className="eyebrow">Company News</p>
+          <h2>Publish and manage updates.</h2>
+        </div>
+      </div>
+
+      <form className="editorForm compact" onSubmit={saveNews}>
+        <div className="formTop">
+          <h2>{editing ? "Edit company news" : "Add company news"}</h2>
+          {editing && <button type="button" onClick={() => setEditing(null)}><X size={18} /></button>}
+        </div>
+        <input required placeholder="News title" value={title} onChange={(e) => setTitle(e.target.value)} />
+        <textarea required placeholder="Write the update..." value={body} onChange={(e) => setBody(e.target.value)} />
+        <button type="submit" className="primaryButton"><Save size={18} />{editing ? "Save news" : "Publish news"}</button>
+      </form>
+
+      <div className="managerList">
+        {news.map((item) => (
+          <article key={item.id} className="managerRow">
+            <div className="miniIcon"><Newspaper size={22} /></div>
+            <div>
+              <strong>{item.title}</strong>
+              <p>{item.body || item.description || "No detail added."}</p>
+              <small>{item.published === false ? "Hidden" : "Published"}</small>
+            </div>
+            <div className="managerActions">
+              <button type="button" onClick={() => setEditing(item)}><Pencil size={16} />Edit</button>
+              <button type="button" onClick={() => togglePublished(item)}>
+                {item.published === false ? <Eye size={16} /> : <EyeOff size={16} />}
+                {item.published === false ? "Show" : "Hide"}
+              </button>
+              <button type="button" onClick={() => deleteNews(item)}><Trash2 size={16} />Delete</button>
+            </div>
+          </article>
+        ))}
+
+        {news.length === 0 && <div className="empty"><strong>No news yet</strong><p>Add your first company update above.</p></div>}
+      </div>
+    </section>
+  );
+}
+
+function EventsManager({ events, reloadEvents, setNotice }) {
+  const [title, setTitle] = useState("");
+  const [eventDate, setEventDate] = useState("");
+  const [location, setLocation] = useState("");
+  const [description, setDescription] = useState("");
+
+  async function saveEvent(e) {
+    e.preventDefault();
+    setNotice(null);
+    const { error } = await supabase.from("events").insert([{
+      title: title.trim(),
+      event_date: eventDate || null,
+      location: location.trim() || null,
+      description: description.trim() || null,
+      published: true
+    }]);
+
+    if (error) {
+      setNotice({ type: "error", text: error.message });
+      return;
+    }
+
+    setNotice({ type: "success", text: "Event added." });
+    setTitle("");
+    setEventDate("");
+    setLocation("");
+    setDescription("");
+    await reloadEvents();
+  }
+
+  async function deleteEvent(item) {
+    if (!window.confirm("Delete this event?")) return;
+    const { error } = await supabase.from("events").delete().eq("id", item.id);
+    if (error) {
+      setNotice({ type: "error", text: error.message });
+      return;
+    }
+    await reloadEvents();
+  }
+
+  return (
+    <section className="managerSection">
+      <div className="managerSectionHeader">
+        <div>
+          <p className="eyebrow">Events</p>
+          <h2>Add upcoming dates.</h2>
+        </div>
+      </div>
+
+      <form className="editorForm compact" onSubmit={saveEvent}>
+        <input required placeholder="Event title" value={title} onChange={(e) => setTitle(e.target.value)} />
+        <input type="datetime-local" value={eventDate} onChange={(e) => setEventDate(e.target.value)} />
+        <input placeholder="Location optional" value={location} onChange={(e) => setLocation(e.target.value)} />
+        <textarea placeholder="Description optional" value={description} onChange={(e) => setDescription(e.target.value)} />
+        <button type="submit" className="primaryButton"><Save size={18} />Add event</button>
+      </form>
+
+      <div className="managerList">
+        {events.map((item) => (
+          <article key={item.id} className="managerRow">
+            <div className="miniIcon"><CalendarDays size={22} /></div>
+            <div>
+              <strong>{item.title}</strong>
+              <p>{formatDateTime(item.event_date)}{item.location ? ` · ${item.location}` : ""}</p>
+              <small>{item.description || "No description"}</small>
+            </div>
+            <div className="managerActions">
+              <button type="button" onClick={() => deleteEvent(item)}><Trash2 size={16} />Delete</button>
+            </div>
+          </article>
+        ))}
+        {events.length === 0 && <div className="empty"><strong>No events yet</strong><p>Add events above.</p></div>}
+      </div>
+    </section>
+  );
+}
+
+function ContactsManager({ contacts, reloadContacts, setNotice }) {
+  const [name, setName] = useState("");
+  const [role, setRole] = useState("");
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
+
+  async function saveContact(e) {
+    e.preventDefault();
+    setNotice(null);
+    const { error } = await supabase.from("useful_contacts").insert([{ name, role, phone, email }]);
+    if (error) {
+      setNotice({ type: "error", text: error.message });
+      return;
+    }
+    setNotice({ type: "success", text: "Contact added." });
+    setName(""); setRole(""); setPhone(""); setEmail("");
+    await reloadContacts();
+  }
+
+  async function deleteContact(item) {
+    if (!window.confirm("Delete this contact?")) return;
+    const { error } = await supabase.from("useful_contacts").delete().eq("id", item.id);
+    if (error) {
+      setNotice({ type: "error", text: error.message });
+      return;
+    }
+    await reloadContacts();
+  }
+
+  return (
+    <section className="managerSection">
+      <div className="managerSectionHeader">
+        <div>
+          <p className="eyebrow">Useful Contacts</p>
+          <h2>Keep key contacts up to date.</h2>
+        </div>
+      </div>
+
+      <form className="editorForm compact" onSubmit={saveContact}>
+        <input required placeholder="Name" value={name} onChange={(e) => setName(e.target.value)} />
+        <input placeholder="Role / team" value={role} onChange={(e) => setRole(e.target.value)} />
+        <input placeholder="Phone" value={phone} onChange={(e) => setPhone(e.target.value)} />
+        <input placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
+        <button type="submit" className="primaryButton"><Save size={18} />Add contact</button>
+      </form>
+
+      <div className="managerList">
+        {contacts.map((item) => (
+          <article key={item.id} className="managerRow">
+            <div className="miniIcon"><Phone size={22} /></div>
+            <div>
+              <strong>{item.name}</strong>
+              <p>{item.role || "Contact"}</p>
+              <small>{[item.phone, item.email].filter(Boolean).join(" · ")}</small>
+            </div>
+            <div className="managerActions">
+              <button type="button" onClick={() => deleteContact(item)}><Trash2 size={16} />Delete</button>
+            </div>
+          </article>
+        ))}
+        {contacts.length === 0 && <div className="empty"><strong>No contacts yet</strong><p>Add useful contacts above.</p></div>}
+      </div>
+    </section>
+  );
+}
+
+function SuggestionsManager({ suggestions, reloadSuggestions, setNotice }) {
+  async function markSuggestion(item, status) {
+    const { error } = await supabase.from("suggestions").update({ status }).eq("id", item.id);
+    if (error) {
+      setNotice({ type: "error", text: error.message });
+      return;
+    }
+    await reloadSuggestions();
+  }
+
+  return (
+    <section className="managerSection">
+      <div className="managerSectionHeader">
+        <div>
+          <p className="eyebrow">Suggestions</p>
+          <h2>Review staff ideas.</h2>
+        </div>
+      </div>
+
+      <div className="managerList">
+        {suggestions.map((item) => (
+          <article key={item.id} className="managerRow">
+            <div className="miniIcon"><Lightbulb size={22} /></div>
+            <div>
+              <strong>{item.status || "new"}</strong>
+              <p>{item.message}</p>
+              <small>{formatDateTime(item.created_at)}</small>
+            </div>
+            <div className="managerActions">
+              <button type="button" onClick={() => markSuggestion(item, "reviewed")}>Reviewed</button>
+              <button type="button" onClick={() => markSuggestion(item, "actioned")}>Actioned</button>
+            </div>
+          </article>
+        ))}
+        {suggestions.length === 0 && <div className="empty"><strong>No suggestions yet</strong><p>Staff suggestions will appear here.</p></div>}
+      </div>
+    </section>
+  );
+}
+
+function Manager({
+  employees,
+  setEmployees,
+  reloadEmployees,
+  news,
+  reloadNews,
+  events,
+  reloadEvents,
+  contacts,
+  reloadContacts,
+  suggestions,
+  reloadSuggestions,
+  session,
+  onLogout
+}) {
   const [view, setView] = useState("active");
   const [editing, setEditing] = useState(null);
   const [notice, setNotice] = useState(null);
+  const [managerTab, setManagerTab] = useState("Employees");
 
   const shown = employees.filter((e) => view === "active" ? e.status === "active" : e.status === "left");
 
@@ -1046,64 +1368,86 @@ function Manager({ employees, setEmployees, reloadEmployees, news, reloadNews, s
 
       {notice && <Notice type={notice.type}>{notice.text}</Notice>}
 
-      <div className="managerStack">
-        <EmployeeEditor
-          editing={editing}
-          onSave={saveEmployee}
-          onCancel={() => setEditing(null)}
-        />
-
-        <NewsEditor onSave={saveNews} />
-      </div>
-
-      <div className="managerControls">
-        <button
-          type="button"
-          className={view === "active" ? "control active" : "control"}
-          onClick={() => setView("active")}
-        >
-          Active
-        </button>
-        <button
-          type="button"
-          className={view === "left" ? "control active" : "control"}
-          onClick={() => setView("left")}
-        >
-          Former employees
-        </button>
-      </div>
-
-      <div className="managerList">
-        {shown.map((person) => (
-          <article key={person.id} className="managerRow">
-            <Avatar />
-            <div>
-              <strong>{person.full_name}</strong>
-              <p>{person.role} · {person.department}</p>
-              <small>{person.favourite_product || "No favourite product set"}</small>
-            </div>
-
-            <div className="managerActions">
-              <button type="button" onClick={() => {
-                setEditing(person);
-                window.scrollTo({ top: 0, behavior: "smooth" });
-              }}>
-                <Pencil size={16} />
-                Edit
-              </button>
-
-              {person.status === "active" ? (
-                <button type="button" onClick={() => changeStatus(person, "left")}>Mark as left</button>
-              ) : (
-                <button type="button" onClick={() => changeStatus(person, "active")}>
-                  <RotateCcw size={16} />
-                  Restore
-                </button>
-              )}
-            </div>
-          </article>
+      <div className="managerTabs">
+        {["Employees", "News", "Events", "Contacts", "Suggestions"].map((item) => (
+          <button
+            key={item}
+            type="button"
+            className={managerTab === item ? "active" : ""}
+            onClick={() => setManagerTab(item)}
+          >
+            {item}
+          </button>
         ))}
       </div>
+
+      {managerTab === "Employees" && (
+        <>
+          <EmployeeEditor
+            editing={editing}
+            onSave={saveEmployee}
+            onCancel={() => setEditing(null)}
+          />
+
+          <div className="managerControls">
+            <button
+              type="button"
+              className={view === "active" ? "control active" : "control"}
+              onClick={() => setView("active")}
+            >
+              Active
+            </button>
+            <button
+              type="button"
+              className={view === "left" ? "control active" : "control"}
+              onClick={() => setView("left")}
+            >
+              Former employees
+            </button>
+          </div>
+
+          <div className="managerList">
+            {shown.map((person) => (
+              <article key={person.id} className="managerRow">
+                <Avatar />
+                <div>
+                  <strong>{person.full_name}</strong>
+                  <p>{person.role} · {person.department}</p>
+                  <small>{[
+                    person.favourite_product || "No favourite product set",
+                    person.forklift_trained ? "Forklift" : null,
+                    person.first_aid_trained ? "First Aid" : null
+                  ].filter(Boolean).join(" · ")}</small>
+                </div>
+
+                <div className="managerActions">
+                  <button type="button" onClick={() => {
+                    setEditing(person);
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }}>
+                    <Pencil size={16} />
+                    Edit
+                  </button>
+
+                  {person.status === "active" ? (
+                    <button type="button" onClick={() => changeStatus(person, "left")}>Mark as left</button>
+                  ) : (
+                    <button type="button" onClick={() => changeStatus(person, "active")}>
+                      <RotateCcw size={16} />
+                      Restore
+                    </button>
+                  )}
+                </div>
+              </article>
+            ))}
+          </div>
+        </>
+      )}
+
+      {managerTab === "News" && <NewsManager news={news} reloadNews={reloadNews} setNotice={setNotice} />}
+      {managerTab === "Events" && <EventsManager events={events || []} reloadEvents={reloadEvents} setNotice={setNotice} />}
+      {managerTab === "Contacts" && <ContactsManager contacts={contacts || []} reloadContacts={reloadContacts} setNotice={setNotice} />}
+      {managerTab === "Suggestions" && <SuggestionsManager suggestions={suggestions || []} reloadSuggestions={reloadSuggestions} setNotice={setNotice} />}
     </section>
   );
 }
@@ -1123,6 +1467,9 @@ function App() {
   const [page, setPage] = useState("home");
   const [employees, setEmployees] = useState([]);
   const [news, setNews] = useState([]);
+  const [events, setEvents] = useState([]);
+  const [contacts, setContacts] = useState([]);
+  const [suggestions, setSuggestions] = useState([]);
   const [selectedPerson, setSelectedPerson] = useState(null);
   const [loadNotice, setLoadNotice] = useState(null);
   const [session, setSession] = useState(null);
@@ -1155,15 +1502,59 @@ function App() {
     const { data, error } = await supabase
       .from("company_news")
       .select("*")
-      .eq("published", true)
       .order("created_at", { ascending: false });
 
     if (!error) setNews(data || []);
   }
 
+  async function loadEvents() {
+    if (!supabase) {
+      setEvents([]);
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from("events")
+      .select("*")
+      .order("event_date", { ascending: true });
+
+    if (!error) setEvents(data || []);
+  }
+
+  async function loadContacts() {
+    if (!supabase) {
+      setContacts([]);
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from("useful_contacts")
+      .select("*")
+      .order("name", { ascending: true });
+
+    if (!error) setContacts(data || []);
+  }
+
+  async function loadSuggestions() {
+    if (!supabase) {
+      setSuggestions([]);
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from("suggestions")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (!error) setSuggestions(data || []);
+  }
+
   useEffect(() => {
     loadEmployees();
     loadNews();
+    loadEvents();
+    loadContacts();
+    loadSuggestions();
 
     if (!supabase) return;
 
@@ -1190,7 +1581,7 @@ function App() {
   const pages = {
     home: <Home setPage={setPage} employees={employees} news={news} openPerson={setSelectedPerson} />,
     people: <People employees={employees} openPerson={setSelectedPerson} />,
-    news: <News news={news} />,
+    news: <News news={news.filter((item) => item.published !== false)} />,
     birthdays: <BirthdaysPage employees={employees} openPerson={setSelectedPerson} />,
     anniversaries: <AnniversariesPage employees={employees} openPerson={setSelectedPerson} />,
     starters: <StartersPage employees={employees} openPerson={setSelectedPerson} />,
@@ -1205,6 +1596,12 @@ function App() {
         reloadEmployees={loadEmployees}
         news={news}
         reloadNews={loadNews}
+        events={events}
+        reloadEvents={loadEvents}
+        contacts={contacts}
+        reloadContacts={loadContacts}
+        suggestions={suggestions}
+        reloadSuggestions={loadSuggestions}
         session={session}
         onLogout={logoutManager}
       />
