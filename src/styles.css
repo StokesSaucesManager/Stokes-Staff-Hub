@@ -941,3 +941,43 @@ main {
   background: linear-gradient(135deg,#fff6ec,#ead3e5);
   border: 1px solid var(--line);
 }
+
+
+.accessPage {
+  min-height: 68vh;
+  display: grid;
+  align-content: center;
+  gap: 20px;
+}
+
+.waitingCard {
+  width: min(680px, 100%);
+  background: rgba(255,255,255,.9);
+  border: 1px solid var(--line);
+  border-radius: 34px;
+  padding: 34px;
+  box-shadow: var(--shadow);
+}
+
+.waitingCard h1 {
+  font-family: Georgia, serif;
+  color: var(--plum);
+  font-size: clamp(42px, 7vw, 72px);
+  line-height: .92;
+  letter-spacing: -.05em;
+  margin: 8px 0 14px;
+}
+
+.waitingCard p,
+.smallPrint {
+  color: var(--muted);
+}
+
+.smallPrint {
+  font-size: 14px;
+  margin: 0;
+}
+
+.loginCard .primaryButton {
+  justify-content: center;
+}

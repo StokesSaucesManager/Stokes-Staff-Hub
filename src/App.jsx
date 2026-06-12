@@ -27,7 +27,8 @@ import {
   LogOut,
   Trash2,
   Eye,
-  EyeOff
+  EyeOff,
+  ShieldCheck
 } from "lucide-react";
 import { supabase } from "./supabaseClient";
 import "./styles.css";
@@ -693,6 +694,7 @@ function ProfileModal({ person, onClose }) {
 function defaultEmployee() {
   return {
     full_name: "",
+    email: "",
     role: "",
     department: "Factory",
     start_date: "",
@@ -711,6 +713,7 @@ function defaultEmployee() {
 function cleanEmployeeForSave(form) {
   const payload = {
     full_name: form.full_name.trim(),
+    email: form.email?.trim().toLowerCase() || null,
     role: form.role.trim(),
     department: form.department,
     start_date: form.start_date || null,
@@ -719,6 +722,7 @@ function cleanEmployeeForSave(form) {
     birthday_month: form.birthday_month ? Number(form.birthday_month) : null,
     birthday_year: form.birthday_year ? Number(form.birthday_year) : null,
     status: form.status || "active",
+    is_manager: Boolean(form.is_manager),
     use_default_icon: true,
     photo_url: form.photo_url || null,
     forklift_trained: Boolean(form.forklift_trained),
@@ -773,6 +777,13 @@ function EmployeeEditor({ editing, onSave, onCancel }) {
           placeholder="Full name"
           value={form.full_name}
           onChange={(e) => update("full_name", e.target.value)}
+        />
+
+        <input
+          type="email"
+          placeholder="Email address"
+          value={form.email || ""}
+          onChange={(e) => update("email", e.target.value)}
         />
 
         <input
@@ -854,6 +865,14 @@ function EmployeeEditor({ editing, onSave, onCancel }) {
           />
           First Aid trained
         </label>
+        <label>
+          <input
+            type="checkbox"
+            checked={Boolean(form.is_manager)}
+            onChange={(e) => update("is_manager", e.target.checked)}
+          />
+          Manager access
+        </label>
       </div>
 
       <button type="submit" className="primaryButton">
@@ -887,6 +906,189 @@ function NewsEditor({ onSave }) {
         Publish news
       </button>
     </form>
+  );
+}
+
+
+
+function AccessRequestScreen({ onCreated }) {
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [notice, setNotice] = useState(null);
+  const [busy, setBusy] = useState(false);
+
+  async function requestAccess(e) {
+    e.preventDefault();
+    setNotice(null);
+    if (!supabase) return setNotice({ type: "error", text: "Supabase is not connected." });
+    if (password.length < 6) return setNotice({ type: "error", text: "Password must be at least 6 characters." });
+
+    setBusy(true);
+    const cleanEmail = email.trim().toLowerCase();
+
+    const { error: signUpError } = await supabase.auth.signUp({ email: cleanEmail, password });
+    if (signUpError && !signUpError.message.toLowerCase().includes("already registered")) {
+      setBusy(false);
+      return setNotice({ type: "error", text: signUpError.message });
+    }
+
+    const { error: requestError } = await supabase.from("join_requests").upsert(
+      [{ full_name: fullName.trim(), email: cleanEmail, status: "pending", requested_at: new Date().toISOString() }],
+      { onConflict: "email" }
+    );
+
+    setBusy(false);
+    if (requestError) return setNotice({ type: "error", text: requestError.message });
+
+    setNotice({ type: "success", text: "Request sent. A manager will review it." });
+    setFullName(""); setEmail(""); setPassword("");
+    onCreated?.();
+  }
+
+  if (!session) {
+    return <AccessRequestScreen onCreated={() => {}} />;
+  }
+
+  if (!accessChecked) {
+    return (
+      <main>
+        <section className="accessPage">
+          <div className="waitingCard">
+            <p className="eyebrow">Loading</p>
+            <h1>Checking access…</h1>
+          </div>
+        </section>
+      </main>
+    );
+  }
+
+  if (!currentProfile) {
+    return <WaitingApprovalScreen session={session} onLogout={logoutManager} />;
+  }
+
+  if (currentProfile.status !== "active") {
+    return <DeactivatedScreen session={session} onLogout={logoutManager} />;
+  }
+
+  return (
+    <main>
+      <nav className="nav"><button className="brandButton" type="button"><StokesLogo /></button></nav>
+      <section className="accessPage">
+        <div className="pageIntro">
+          <p className="eyebrow">Request Access</p>
+          <h1>Join the Stokes Staff Hub.</h1>
+          <p>Create your account request. A manager will approve access before you can enter the hub.</p>
+        </div>
+        {notice && <Notice type={notice.type}>{notice.text}</Notice>}
+        <form className="loginCard" onSubmit={requestAccess}>
+          <div className="loginIcon"><UserPlus size={28} /></div>
+          <h2>Create your account</h2>
+          <input required placeholder="Full name" value={fullName} onChange={(e) => setFullName(e.target.value)} />
+          <input required type="email" placeholder="Email address" value={email} onChange={(e) => setEmail(e.target.value)} />
+          <input required type="password" placeholder="Create password" value={password} onChange={(e) => setPassword(e.target.value)} />
+          <button type="submit" className="primaryButton" disabled={busy}>{busy ? "Sending request..." : "Request access"}</button>
+          <p className="smallPrint">You’ll only be able to access the hub once a manager approves your request.</p>
+        </form>
+      </section>
+    </main>
+  );
+}
+
+function WaitingApprovalScreen({ session, onLogout }) {
+  return (
+    <main>
+      <nav className="nav"><button className="brandButton" type="button"><StokesLogo /></button></nav>
+      <section className="accessPage">
+        <div className="waitingCard">
+          <div className="loginIcon"><ShieldCheck size={30} /></div>
+          <p className="eyebrow">Waiting Approval</p>
+          <h1>Your request is with a manager.</h1>
+          <p>You’re signed in as <strong>{session?.user?.email}</strong>, but access has not been approved yet.</p>
+          <p>Once approved, you’ll be able to open the Stokes Staff Hub.</p>
+          <button type="button" className="secondaryButton" onClick={onLogout}>Sign out</button>
+        </div>
+      </section>
+    </main>
+  );
+}
+
+function DeactivatedScreen({ session, onLogout }) {
+  return (
+    <main>
+      <nav className="nav"><button className="brandButton" type="button"><StokesLogo /></button></nav>
+      <section className="accessPage">
+        <div className="waitingCard">
+          <div className="loginIcon"><Lock size={30} /></div>
+          <p className="eyebrow">Access Removed</p>
+          <h1>Your account is inactive.</h1>
+          <p>You’re signed in as <strong>{session?.user?.email}</strong>, but this profile is no longer active.</p>
+          <button type="button" className="secondaryButton" onClick={onLogout}>Sign out</button>
+        </div>
+      </section>
+    </main>
+  );
+}
+
+function JoinRequestsManager({ requests, reloadRequests, reloadEmployees, setNotice }) {
+  async function approveRequest(item, isManager = false) {
+    setNotice(null);
+    const employeePayload = {
+      full_name: item.full_name,
+      email: item.email,
+      role: "New starter",
+      department: "Factory",
+      start_date: new Date().toISOString().slice(0, 10),
+      favourite_product: "Real Tomato Ketchup",
+      status: "active",
+      is_manager: isManager,
+      use_default_icon: true
+    };
+    const { error: employeeError } = await supabase.from("employees").upsert([employeePayload], { onConflict: "email" });
+    if (employeeError) return setNotice({ type: "error", text: employeeError.message });
+
+    const { error: requestError } = await supabase
+      .from("join_requests")
+      .update({ status: "approved", reviewed_at: new Date().toISOString(), approved_as_manager: isManager })
+      .eq("id", item.id);
+    if (requestError) return setNotice({ type: "error", text: requestError.message });
+
+    setNotice({ type: "success", text: isManager ? "Approved as manager." : "Approved as employee." });
+    await reloadRequests();
+    await reloadEmployees();
+  }
+
+  async function declineRequest(item) {
+    setNotice(null);
+    const { error } = await supabase
+      .from("join_requests")
+      .update({ status: "declined", reviewed_at: new Date().toISOString() })
+      .eq("id", item.id);
+    if (error) return setNotice({ type: "error", text: error.message });
+    setNotice({ type: "success", text: "Request declined." });
+    await reloadRequests();
+  }
+
+  const pending = requests.filter((r) => r.status === "pending");
+
+  return (
+    <section className="managerSection">
+      <div className="managerSectionHeader"><div><p className="eyebrow">Join Requests</p><h2>Approve who can access the hub.</h2></div></div>
+      <div className="managerList">
+        {pending.map((item) => (
+          <article key={item.id} className="managerRow">
+            <div className="miniIcon"><UserPlus size={22} /></div>
+            <div><strong>{item.full_name}</strong><p>{item.email}</p><small>Requested {formatDateTime(item.requested_at || item.created_at)}</small></div>
+            <div className="managerActions">
+              <button type="button" onClick={() => approveRequest(item, false)}>Approve</button>
+              <button type="button" onClick={() => approveRequest(item, true)}>Approve as manager</button>
+              <button type="button" onClick={() => declineRequest(item)}>Decline</button>
+            </div>
+          </article>
+        ))}
+        {pending.length === 0 && <div className="empty"><strong>No pending requests</strong><p>New account requests will appear here for approval.</p></div>}
+      </div>
+    </section>
   );
 }
 
@@ -1221,6 +1423,7 @@ function SuggestionsManager({ suggestions, reloadSuggestions, setNotice }) {
       return;
     }
     await reloadSuggestions();
+    loadJoinRequests();
   }
 
   return (
@@ -1265,13 +1468,15 @@ function Manager({
   reloadContacts,
   suggestions,
   reloadSuggestions,
+  joinRequests,
+  reloadJoinRequests,
   session,
   onLogout
 }) {
   const [view, setView] = useState("active");
   const [editing, setEditing] = useState(null);
   const [notice, setNotice] = useState(null);
-  const [managerTab, setManagerTab] = useState("Employees");
+  const [managerTab, setManagerTab] = useState("Join Requests");
 
   const shown = employees.filter((e) => view === "active" ? e.status === "active" : e.status === "left");
 
@@ -1369,7 +1574,7 @@ function Manager({
       {notice && <Notice type={notice.type}>{notice.text}</Notice>}
 
       <div className="managerTabs">
-        {["Employees", "News", "Events", "Contacts", "Suggestions"].map((item) => (
+        {["Join Requests", "Employees", "News", "Events", "Contacts", "Suggestions"].map((item) => (
           <button
             key={item}
             type="button"
@@ -1380,6 +1585,15 @@ function Manager({
           </button>
         ))}
       </div>
+
+      {managerTab === "Join Requests" && (
+        <JoinRequestsManager
+          requests={joinRequests || []}
+          reloadRequests={reloadJoinRequests}
+          reloadEmployees={reloadEmployees}
+          setNotice={setNotice}
+        />
+      )}
 
       {managerTab === "Employees" && (
         <>
@@ -1473,6 +1687,9 @@ function App() {
   const [selectedPerson, setSelectedPerson] = useState(null);
   const [loadNotice, setLoadNotice] = useState(null);
   const [session, setSession] = useState(null);
+  const [currentProfile, setCurrentProfile] = useState(null);
+  const [accessChecked, setAccessChecked] = useState(false);
+  const [joinRequests, setJoinRequests] = useState([]);
 
   async function loadEmployees() {
     if (!supabase) {
@@ -1549,21 +1766,58 @@ function App() {
     if (!error) setSuggestions(data || []);
   }
 
+  async function loadJoinRequests() {
+    if (!supabase) {
+      setJoinRequests([]);
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from("join_requests")
+      .select("*")
+      .order("requested_at", { ascending: false });
+
+    if (!error) setJoinRequests(data || []);
+  }
+
+  async function checkAccess(nextSession) {
+    setAccessChecked(false);
+    setCurrentProfile(null);
+
+    if (!supabase || !nextSession?.user?.email) {
+      setAccessChecked(true);
+      return;
+    }
+
+    const email = nextSession.user.email.toLowerCase();
+    const { data, error } = await supabase
+      .from("employees")
+      .select("*")
+      .eq("email", email)
+      .maybeSingle();
+
+    if (!error && data) setCurrentProfile(data);
+    setAccessChecked(true);
+  }
+
   useEffect(() => {
     loadEmployees();
     loadNews();
     loadEvents();
     loadContacts();
     loadSuggestions();
+    loadJoinRequests();
 
     if (!supabase) return;
 
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session || null);
+      checkAccess(data.session || null);
     });
 
     const { data: listener } = supabase.auth.onAuthStateChange((_event, nextSession) => {
       setSession(nextSession || null);
+      checkAccess(nextSession || null);
     });
 
     return () => {
@@ -1576,6 +1830,8 @@ function App() {
       await supabase.auth.signOut();
     }
     setSession(null);
+    setCurrentProfile(null);
+    setAccessChecked(true);
   }
 
   const pages = {
@@ -1589,7 +1845,7 @@ function App() {
     training: <TrainingPeoplePage employees={employees} openPerson={setSelectedPerson} />,
     contacts: <ContactsPage />,
     suggestions: <SuggestionsPage />,
-    manager: session ? (
+    manager: currentProfile?.is_manager ? (
       <Manager
         employees={employees}
         setEmployees={setEmployees}
@@ -1602,11 +1858,13 @@ function App() {
         reloadContacts={loadContacts}
         suggestions={suggestions}
         reloadSuggestions={loadSuggestions}
+        joinRequests={joinRequests}
+        reloadJoinRequests={loadJoinRequests}
         session={session}
         onLogout={logoutManager}
       />
     ) : (
-      <ManagerLogin onLoggedIn={() => loadEmployees()} />
+      <WaitingApprovalScreen session={session} onLogout={logoutManager} />
     )
   };
 
@@ -1621,7 +1879,9 @@ function App() {
           <button className={page === "home" ? "active" : ""} type="button" onClick={() => setPage("home")}>Home</button>
           <button className={page === "people" ? "active" : ""} type="button" onClick={() => setPage("people")}>People</button>
           <button className={page === "news" ? "active" : ""} type="button" onClick={() => setPage("news")}>News</button>
-          <button className={page === "manager" ? "active" : ""} type="button" onClick={() => setPage("manager")}>Manager</button>
+          {currentProfile?.is_manager && (
+            <button className={page === "manager" ? "active" : ""} type="button" onClick={() => setPage("manager")}>Manager</button>
+          )}
         </div>
       </nav>
 
