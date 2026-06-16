@@ -1243,20 +1243,68 @@ function JoinRequestsManager({ requests, reloadRequests, reloadEmployees, setNot
 
 
 
+
 function MyProfile({ profile, refreshProfile }) {
   const [favouriteProduct, setFavouriteProduct] = useState(profile?.favourite_product || "");
   const [birthdayDay, setBirthdayDay] = useState(profile?.birthday_day || "");
   const [birthdayMonth, setBirthdayMonth] = useState(profile?.birthday_month || "");
   const [birthdayYear, setBirthdayYear] = useState(profile?.birthday_year || "");
+  const [photoUrl, setPhotoUrl] = useState(profile?.photo_url || "");
+  const [useDefaultIcon, setUseDefaultIcon] = useState(Boolean(profile?.use_default_icon));
+  const [newPassword, setNewPassword] = useState("");
   const [notice, setNotice] = useState(null);
+  const [passwordNotice, setPasswordNotice] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [changingPassword, setChangingPassword] = useState(false);
 
   useEffect(() => {
     setFavouriteProduct(profile?.favourite_product || "");
     setBirthdayDay(profile?.birthday_day || "");
     setBirthdayMonth(profile?.birthday_month || "");
     setBirthdayYear(profile?.birthday_year || "");
+    setPhotoUrl(profile?.photo_url || "");
+    setUseDefaultIcon(Boolean(profile?.use_default_icon));
   }, [profile]);
+
+  async function uploadOwnPhoto(file) {
+    if (!file) return;
+    setNotice(null);
+
+    if (!supabase || !profile?.id) {
+      setNotice({ type: "error", text: "Could not find your profile." });
+      return;
+    }
+
+    if (!file.type.startsWith("image/")) {
+      setNotice({ type: "error", text: "Please choose an image file." });
+      return;
+    }
+
+    setUploadingPhoto(true);
+
+    const safeName = file.name.replace(/[^a-z0-9.\-_]/gi, "-").toLowerCase();
+    const filePath = `${profile.id}/${Date.now()}-${safeName}`;
+
+    const { error } = await supabase.storage
+      .from("employee-photos")
+      .upload(filePath, file, { upsert: true });
+
+    if (error) {
+      setUploadingPhoto(false);
+      setNotice({ type: "error", text: error.message });
+      return;
+    }
+
+    const { data } = supabase.storage
+      .from("employee-photos")
+      .getPublicUrl(filePath);
+
+    setPhotoUrl(data.publicUrl);
+    setUseDefaultIcon(false);
+    setUploadingPhoto(false);
+    setNotice({ type: "success", text: "Photo uploaded. Click Save my profile to keep it." });
+  }
 
   async function saveProfile(e) {
     e.preventDefault();
@@ -1275,7 +1323,9 @@ function MyProfile({ profile, refreshProfile }) {
         favourite_product: favouriteProduct || null,
         birthday_day: birthdayDay ? Number(birthdayDay) : null,
         birthday_month: birthdayMonth ? Number(birthdayMonth) : null,
-        birthday_year: birthdayYear ? Number(birthdayYear) : null
+        birthday_year: birthdayYear ? Number(birthdayYear) : null,
+        photo_url: useDefaultIcon ? null : (photoUrl || null),
+        use_default_icon: Boolean(useDefaultIcon)
       })
       .eq("id", profile.id);
 
@@ -1290,12 +1340,34 @@ function MyProfile({ profile, refreshProfile }) {
     await refreshProfile?.();
   }
 
+  async function changePassword(e) {
+    e.preventDefault();
+    setPasswordNotice(null);
+
+    if (!newPassword || newPassword.length < 6) {
+      setPasswordNotice({ type: "error", text: "Password must be at least 6 characters." });
+      return;
+    }
+
+    setChangingPassword(true);
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    setChangingPassword(false);
+
+    if (error) {
+      setPasswordNotice({ type: "error", text: error.message });
+      return;
+    }
+
+    setNewPassword("");
+    setPasswordNotice({ type: "success", text: "Password updated." });
+  }
+
   return (
     <section>
       <div className="pageIntro">
         <p className="eyebrow">My Profile</p>
         <h1>Your Stokes profile.</h1>
-        <p>You can update your birthday and favourite Stokes product. Managers control work details.</p>
+        <p>You can update your birthday, favourite Stokes product, photo and password. Managers control work details.</p>
       </div>
 
       {notice && <Notice type={notice.type}>{notice.text}</Notice>}
@@ -1303,7 +1375,7 @@ function MyProfile({ profile, refreshProfile }) {
       <div className="profileLayout">
         <article className="profileCardLarge">
           <div className="profileHero">
-            <EmployeeAvatar person={profile} />
+            <EmployeeAvatar person={{ ...profile, photo_url: photoUrl, use_default_icon: useDefaultIcon }} />
             <div>
               <h2>{profile?.full_name}</h2>
               <p>{profile?.email}</p>
@@ -1317,12 +1389,33 @@ function MyProfile({ profile, refreshProfile }) {
             <div><span>Status</span><strong>{profile?.status || "Not set"}</strong></div>
           </div>
 
-          <p className="lockedNote">Role, department, photo, training and manager access are managed by managers.</p>
+          <p className="lockedNote">Role, department, training and manager access are managed by managers.</p>
         </article>
 
         <form className="profileEditCard" onSubmit={saveProfile}>
           <div className="loginIcon"><UserCircle size={28} /></div>
-          <h2>Edit personal details</h2>
+          <h2>Edit my profile</h2>
+
+          <label>
+            Profile photo
+            <input
+              type="file"
+              accept="image/*"
+              disabled={uploadingPhoto}
+              onChange={(e) => uploadOwnPhoto(e.target.files?.[0])}
+            />
+          </label>
+
+          <label className="inlineCheck">
+            <input
+              type="checkbox"
+              checked={Boolean(useDefaultIcon)}
+              onChange={(e) => setUseDefaultIcon(e.target.checked)}
+            />
+            Use default profile icon
+          </label>
+
+          {uploadingPhoto && <p className="smallPrint">Uploading photo...</p>}
 
           <label>
             Favourite Stokes product
@@ -1359,6 +1452,27 @@ function MyProfile({ profile, refreshProfile }) {
           <button type="submit" className="primaryButton" disabled={busy}>
             <Save size={18} />
             {busy ? "Saving..." : "Save my profile"}
+          </button>
+        </form>
+
+        <form className="profileEditCard passwordCard" onSubmit={changePassword}>
+          <div className="loginIcon"><Lock size={28} /></div>
+          <h2>Change password</h2>
+
+          {passwordNotice && <Notice type={passwordNotice.type}>{passwordNotice.text}</Notice>}
+
+          <label>
+            New password
+            <input
+              type="password"
+              placeholder="New password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+            />
+          </label>
+
+          <button type="submit" className="secondaryButton" disabled={changingPassword}>
+            {changingPassword ? "Updating..." : "Update password"}
           </button>
         </form>
       </div>
