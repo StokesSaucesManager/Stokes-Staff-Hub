@@ -218,6 +218,19 @@ function Avatar({ large = false }) {
   );
 }
 
+function EmployeeAvatar({ person }) {
+  if (person?.photo_url && !person?.use_default_icon) {
+    return (
+      <div className="avatar photoAvatar">
+        <img src={person.photo_url} alt={person.full_name || "Employee"} />
+      </div>
+    );
+  }
+
+  return <Avatar />;
+}
+
+
 function StokesLogo({ hero = false }) {
   return (
     <div className={hero ? "stokesLogo heroLogo" : "stokesLogo"}>
@@ -739,8 +752,9 @@ function cleanEmployeeForSave(form) {
     birthday_month: form.birthday_month ? Number(form.birthday_month) : null,
     birthday_year: form.birthday_year ? Number(form.birthday_year) : null,
     status: form.status || "active",
+    photo_url: form.use_default_icon ? null : (form.photo_url?.trim() || null),
+    use_default_icon: Boolean(form.use_default_icon),
     is_manager: Boolean(form.is_manager),
-    use_default_icon: true,
     photo_url: form.photo_url || null,
     forklift_trained: Boolean(form.forklift_trained),
     first_aid_trained: Boolean(form.first_aid_trained)
@@ -802,6 +816,38 @@ function EmployeeEditor({ editing, onSave, onCancel }) {
           value={form.email || ""}
           onChange={(e) => update("email", e.target.value)}
         />
+
+        <div className="photoManager">
+          <div className="photoPreview">
+            {!form.use_default_icon && form.photo_url ? (
+              <img src={form.photo_url} alt={form.full_name || "Employee"} />
+            ) : (
+              <Avatar />
+            )}
+          </div>
+
+          <div className="photoFields">
+            <label>
+              Photo URL
+              <input
+                type="url"
+                placeholder="Paste image link"
+                value={form.photo_url || ""}
+                disabled={Boolean(form.use_default_icon)}
+                onChange={(e) => update("photo_url", e.target.value)}
+              />
+            </label>
+
+            <label className="inlineCheck">
+              <input
+                type="checkbox"
+                checked={Boolean(form.use_default_icon)}
+                onChange={(e) => update("use_default_icon", e.target.checked)}
+              />
+              Use default profile icon
+            </label>
+          </div>
+        </div>
 
         <input
           required
@@ -1207,7 +1253,7 @@ function MyProfile({ profile, refreshProfile }) {
       <div className="profileLayout">
         <article className="profileCardLarge">
           <div className="profileHero">
-            <Avatar />
+            <EmployeeAvatar person={profile} />
             <div>
               <h2>{profile?.full_name}</h2>
               <p>{profile?.email}</p>
@@ -1801,7 +1847,7 @@ function Manager({
           <div className="managerList">
             {shown.map((person) => (
               <article key={person.id} className="managerRow">
-                <Avatar />
+                <EmployeeAvatar person={person} />
                 <div>
                   <strong>{person.full_name}</strong>
                   <p>{person.role} · {person.department}</p>

@@ -1,7 +1,10 @@
-# Stokes Staff Hub V13 My Profile Fixed
+# Stokes Staff Hub V14 Manager Photo URL
 
-Fixes My Profile blank screen.
+Adds manager-only profile photo controls to the employee edit form.
 
-## Fixes
-- Uses existing products list
-- Adds months list for birthday selector
+## Adds
+- Photo URL field
+- Use default profile icon checkbox
+- Photo preview
+- Public/person cards use employee photos when set
+- My Profile shows the employee photo but staff cannot edit it
