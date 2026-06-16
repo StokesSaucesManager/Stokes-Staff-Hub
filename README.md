@@ -1,9 +1,10 @@
-# Stokes Staff Hub V12 Lock Public Access
+# Stokes Staff Hub V12 Fixed Lock Access
 
-Fixes the public access issue.
+Fixes white screen caused by access lock being inserted in the wrong place.
 
-- Home, People and News are blocked until approved login.
-- First-time users see Request Access.
-- Existing approved users can sign in.
-- Unapproved users see Waiting Approval.
-- Left/inactive employees are blocked.
+## Changes
+- Public access locked behind approval
+- Incognito users see Request Access / Sign In
+- Approved users can enter the hub
+- Unapproved users see Waiting Approval
+- Inactive users are blocked

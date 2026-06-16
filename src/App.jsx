@@ -936,7 +936,6 @@ function ExistingAccountLogin() {
 
     if (error) {
       setNotice({ type: "error", text: error.message });
-      return;
     }
   }
 
@@ -969,7 +968,6 @@ function ExistingAccountLogin() {
     </form>
   );
 }
-
 
 function AccessRequestScreen({ onCreated }) {
   const [fullName, setFullName] = useState("");
@@ -1005,32 +1003,6 @@ function AccessRequestScreen({ onCreated }) {
     setFullName(""); setEmail(""); setPassword("");
     onCreated?.();
   }
-
-  if (!session) {
-    return <AccessRequestScreen onCreated={() => {}} />;
-  }
-
-  if (!accessChecked) {
-    return (
-      <main>
-        <section className="accessPage">
-          <div className="waitingCard">
-            <p className="eyebrow">Loading</p>
-            <h1>Checking access…</h1>
-          </div>
-        </section>
-      </main>
-    );
-  }
-
-  if (!currentProfile) {
-    return <WaitingApprovalScreen session={session} onLogout={logoutManager} />;
-  }
-
-  if (currentProfile.status !== "active") {
-    return <DeactivatedScreen session={session} onLogout={logoutManager} />;
-  }
-
   return (
     <main>
       <nav className="nav"><button className="brandButton" type="button"><StokesLogo /></button></nav>
