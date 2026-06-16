@@ -1,17 +1,7 @@
-# Stokes Staff Hub V16 Self Service Profile
+# Stokes Staff Hub V17 Profiles and Dashboard
 
-Adds employee self-service profile tools.
-
-Staff can update:
-- Own profile photo
-- Favourite Stokes product
-- Birthday
-- Password
-
-Managers still control:
-- Role
-- Department
-- Start date
-- Training
-- Active/former status
-- Manager access
+Adds final launch polish:
+- Clickable employee profile pages
+- Manager overview dashboard cards
+- PWA/mobile install polish
+- Apple home screen metadata

@@ -1,10 +1,14 @@
 {
   "name": "Stokes Staff Hub",
   "short_name": "Staff Hub",
+  "description": "Internal staff hub for Stokes employees.",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#fff7ec",
   "theme_color": "#4a173f",
+  "categories": ["business", "productivity"],
   "icons": [
     {"src": "/app-icon-192.png", "sizes": "192x192", "type": "image/png"},
     {"src": "/app-icon-512.png", "sizes": "512x512", "type": "image/png"}

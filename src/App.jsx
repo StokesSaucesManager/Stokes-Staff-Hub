@@ -1244,6 +1244,129 @@ function JoinRequestsManager({ requests, reloadRequests, reloadEmployees, setNot
 
 
 
+
+function EmployeeProfilePage({ person, onBack }) {
+  if (!person) {
+    return (
+      <section>
+        <button type="button" className="secondaryButton" onClick={onBack}>Back to people</button>
+        <div className="empty">
+          <strong>Profile not found</strong>
+          <p>This employee could not be found.</p>
+        </div>
+      </section>
+    );
+  }
+
+  const training = [
+    person.forklift_trained ? "Forklift trained" : null,
+    person.first_aid_trained ? "First Aid trained" : null
+  ].filter(Boolean);
+
+  return (
+    <section>
+      <button type="button" className="secondaryButton backButton" onClick={onBack}>← Back to people</button>
+
+      <div className="employeeProfileHero">
+        <EmployeeAvatar person={person} />
+        <div>
+          <p className="eyebrow">Employee Profile</p>
+          <h1>{person.full_name}</h1>
+          <p>{person.role || "Role not set"} · {person.department || "Department not set"}</p>
+        </div>
+      </div>
+
+      <div className="profileDetailsGrid">
+        <article>
+          <span>Email</span>
+          <strong>{person.email || "Not set"}</strong>
+        </article>
+        <article>
+          <span>Start date</span>
+          <strong>{formatDate(person.start_date)}</strong>
+        </article>
+        <article>
+          <span>Favourite product</span>
+          <strong>{person.favourite_product || "Not set yet"}</strong>
+        </article>
+        <article>
+          <span>Birthday</span>
+          <strong>{formatBirthday(person) || "Not set yet"}</strong>
+        </article>
+      </div>
+
+      <div className="profileSectionCard">
+        <p className="eyebrow">Training</p>
+        {training.length > 0 ? (
+          <div className="pillRow">
+            {training.map((item) => <span key={item} className="softPill">{item}</span>)}
+          </div>
+        ) : (
+          <p>No training records set yet.</p>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function ManagerOverview({ employees, joinRequests, suggestions, events }) {
+  const activeEmployees = employees.filter((e) => e.status === "active");
+  const pendingRequests = (joinRequests || []).filter((r) => r.status === "pending");
+  const missingPhotos = activeEmployees.filter((e) => !e.photo_url || e.use_default_icon);
+  const upcomingEvents = (events || []).slice(0, 5);
+  const openSuggestions = (suggestions || []).filter((s) => s.status !== "closed");
+
+  return (
+    <section className="managerOverview">
+      <div className="dashboardGrid">
+        <article>
+          <span>Pending requests</span>
+          <strong>{pendingRequests.length}</strong>
+          <p>Staff waiting for approval.</p>
+        </article>
+        <article>
+          <span>Active employees</span>
+          <strong>{activeEmployees.length}</strong>
+          <p>Current staff in the hub.</p>
+        </article>
+        <article>
+          <span>Missing photos</span>
+          <strong>{missingPhotos.length}</strong>
+          <p>Profiles still using the default icon.</p>
+        </article>
+        <article>
+          <span>Open suggestions</span>
+          <strong>{openSuggestions.length}</strong>
+          <p>Ideas or feedback to review.</p>
+        </article>
+      </div>
+
+      <div className="dashboardSplit">
+        <div className="profileSectionCard">
+          <p className="eyebrow">Recent requests</p>
+          {pendingRequests.length ? pendingRequests.slice(0, 3).map((r) => (
+            <div key={r.id} className="dashboardLine">
+              <strong>{r.full_name}</strong>
+              <span>{r.email}</span>
+            </div>
+          )) : <p>No pending join requests.</p>}
+        </div>
+
+        <div className="profileSectionCard">
+          <p className="eyebrow">Upcoming events</p>
+          {upcomingEvents.length ? upcomingEvents.map((event) => (
+            <div key={event.id} className="dashboardLine">
+              <strong>{event.title}</strong>
+              <span>{formatDate(event.event_date || event.date)}</span>
+            </div>
+          )) : <p>No upcoming events added yet.</p>}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+
 function MyProfile({ profile, refreshProfile }) {
   const [favouriteProduct, setFavouriteProduct] = useState(profile?.favourite_product || "");
   const [birthdayDay, setBirthdayDay] = useState(profile?.birthday_day || "");
@@ -1864,7 +1987,7 @@ function Manager({
   const [view, setView] = useState("active");
   const [editing, setEditing] = useState(null);
   const [notice, setNotice] = useState(null);
-  const [managerTab, setManagerTab] = useState("Join Requests");
+  const [managerTab, setManagerTab] = useState("Overview");
 
   const shown = employees.filter((e) => view === "active" ? e.status === "active" : e.status === "left");
 
@@ -1962,7 +2085,7 @@ function Manager({
       {notice && <Notice type={notice.type}>{notice.text}</Notice>}
 
       <div className="managerTabs">
-        {["Join Requests", "Employees", "News", "Events", "Contacts", "Suggestions"].map((item) => (
+        {["Overview", "Join Requests", "Employees", "News", "Events", "Contacts", "Suggestions"].map((item) => (
           <button
             key={item}
             type="button"
@@ -1973,6 +2096,15 @@ function Manager({
           </button>
         ))}
       </div>
+
+      {managerTab === "Overview" && (
+        <ManagerOverview
+          employees={employees}
+          joinRequests={joinRequests || []}
+          suggestions={suggestions || []}
+          events={events || []}
+        />
+      )}
 
       {managerTab === "Join Requests" && (
         <JoinRequestsManager
@@ -2067,6 +2199,7 @@ function PlaceholderPage({ title, icon, description }) {
 
 function App() {
   const [page, setPage] = useState("home");
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState(null);
   const [employees, setEmployees] = useState([]);
   const [news, setNews] = useState([]);
   const [events, setEvents] = useState([]);
