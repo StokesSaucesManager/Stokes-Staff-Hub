@@ -981,3 +981,17 @@ main {
 .loginCard .primaryButton {
   justify-content: center;
 }
+
+
+.accessGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 22px;
+  align-items: start;
+}
+
+@media(max-width: 850px) {
+  .accessGrid {
+    grid-template-columns: 1fr;
+  }
+}

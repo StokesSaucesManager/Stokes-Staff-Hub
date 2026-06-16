@@ -911,6 +911,66 @@ function NewsEditor({ onSave }) {
 
 
 
+
+function ExistingAccountLogin() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [notice, setNotice] = useState(null);
+  const [busy, setBusy] = useState(false);
+
+  async function login(e) {
+    e.preventDefault();
+    setNotice(null);
+
+    if (!supabase) {
+      setNotice({ type: "error", text: "Supabase is not connected." });
+      return;
+    }
+
+    setBusy(true);
+    const { error } = await supabase.auth.signInWithPassword({
+      email: email.trim().toLowerCase(),
+      password
+    });
+    setBusy(false);
+
+    if (error) {
+      setNotice({ type: "error", text: error.message });
+      return;
+    }
+  }
+
+  return (
+    <form className="loginCard" onSubmit={login}>
+      <div className="loginIcon"><Lock size={28} /></div>
+      <h2>Already approved?</h2>
+
+      {notice && <Notice type={notice.type}>{notice.text}</Notice>}
+
+      <input
+        required
+        type="email"
+        placeholder="Email address"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+      />
+
+      <input
+        required
+        type="password"
+        placeholder="Password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+      />
+
+      <button type="submit" className="primaryButton" disabled={busy}>
+        {busy ? "Signing in..." : "Sign in"}
+      </button>
+    </form>
+  );
+}
+
+
 function AccessRequestScreen({ onCreated }) {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -981,6 +1041,7 @@ function AccessRequestScreen({ onCreated }) {
           <p>Create your account request. A manager will approve access before you can enter the hub.</p>
         </div>
         {notice && <Notice type={notice.type}>{notice.text}</Notice>}
+        <div className="accessGrid">
         <form className="loginCard" onSubmit={requestAccess}>
           <div className="loginIcon"><UserPlus size={28} /></div>
           <h2>Create your account</h2>
@@ -990,6 +1051,9 @@ function AccessRequestScreen({ onCreated }) {
           <button type="submit" className="primaryButton" disabled={busy}>{busy ? "Sending request..." : "Request access"}</button>
           <p className="smallPrint">You’ll only be able to access the hub once a manager approves your request.</p>
         </form>
+
+        <ExistingAccountLogin />
+        </div>
       </section>
     </main>
   );
@@ -1867,6 +1931,31 @@ function App() {
       <WaitingApprovalScreen session={session} onLogout={logoutManager} />
     )
   };
+
+  if (!session) {
+    return <AccessRequestScreen onCreated={() => {}} />;
+  }
+
+  if (!accessChecked) {
+    return (
+      <main>
+        <section className="accessPage">
+          <div className="waitingCard">
+            <p className="eyebrow">Loading</p>
+            <h1>Checking access…</h1>
+          </div>
+        </section>
+      </main>
+    );
+  }
+
+  if (!currentProfile) {
+    return <WaitingApprovalScreen session={session} onLogout={logoutManager} />;
+  }
+
+  if (currentProfile.status !== "active") {
+    return <DeactivatedScreen session={session} onLogout={logoutManager} />;
+  }
 
   return (
     <main>

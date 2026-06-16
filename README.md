@@ -1,7 +1,9 @@
-# Stokes Staff Hub V11 Join Requests
+# Stokes Staff Hub V12 Lock Public Access
 
-Adds request access, waiting for approval, manager approval tab, manager-only access, blocked leavers, and the tomato app icon.
+Fixes the public access issue.
 
-## SQL needed before pushing
-
-See chat for SQL.
+- Home, People and News are blocked until approved login.
+- First-time users see Request Access.
+- Existing approved users can sign in.
+- Unapproved users see Waiting Approval.
+- Left/inactive employees are blocked.
