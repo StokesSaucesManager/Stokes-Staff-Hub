@@ -48,6 +48,22 @@ const departments = [
 
 const departmentFilters = ["All", ...departments];
 
+
+const months = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December"
+];
+
 const products = [
   "Real Tomato Ketchup",
   "Reduced Sugar Real Tomato Ketchup",
@@ -1216,7 +1232,7 @@ function MyProfile({ profile, refreshProfile }) {
             Favourite Stokes product
             <select value={favouriteProduct} onChange={(e) => setFavouriteProduct(e.target.value)}>
               <option value="">Not set yet</option>
-              {PRODUCTS.map((product) => (
+              {products.map((product) => (
                 <option key={product} value={product}>{product}</option>
               ))}
             </select>
@@ -1232,7 +1248,7 @@ function MyProfile({ profile, refreshProfile }) {
               Month
               <select value={birthdayMonth} onChange={(e) => setBirthdayMonth(e.target.value)}>
                 <option value="">Month</option>
-                {MONTHS.map((month, index) => (
+                {months.map((month, index) => (
                   <option key={month} value={index + 1}>{month}</option>
                 ))}
               </select>

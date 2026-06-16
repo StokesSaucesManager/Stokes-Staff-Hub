@@ -1,17 +1,7 @@
-# Stokes Staff Hub V13 My Profile
+# Stokes Staff Hub V13 My Profile Fixed
 
-Adds a staff My Profile page.
+Fixes My Profile blank screen.
 
-Staff can edit:
-- Favourite Stokes product
-- Birthday day/month/year
-
-Staff can only view:
-- Name
-- Email
-- Role
-- Department
-- Start date
-- Status
-
-Managers still control work details, photos, training, employment status and manager access.
+## Fixes
+- Uses existing products list
+- Adds months list for birthday selector
