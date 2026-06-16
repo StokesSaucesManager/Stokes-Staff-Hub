@@ -995,3 +995,103 @@ main {
     grid-template-columns: 1fr;
   }
 }
+
+
+.profileLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(360px, .8fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.profileCardLarge,
+.profileEditCard {
+  background: rgba(255,255,255,.9);
+  border: 1px solid var(--line);
+  border-radius: 32px;
+  padding: 26px;
+  box-shadow: var(--shadow);
+}
+
+.profileHero {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 24px;
+}
+
+.profileHero h2,
+.profileEditCard h2 {
+  font-family: Georgia, serif;
+  color: var(--plum);
+  font-size: 38px;
+  letter-spacing: -.04em;
+  margin: 0;
+}
+
+.profileHero p {
+  color: var(--muted);
+  margin: 6px 0 0;
+}
+
+.readOnlyGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.readOnlyGrid div {
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 16px;
+  background: #fffaf4;
+}
+
+.readOnlyGrid span,
+.profileEditCard label {
+  color: var(--muted);
+  font-weight: 900;
+}
+
+.readOnlyGrid strong {
+  display: block;
+  margin-top: 5px;
+  color: var(--plum);
+}
+
+.lockedNote {
+  margin: 18px 0 0;
+  color: var(--muted);
+}
+
+.profileEditCard {
+  display: grid;
+  gap: 16px;
+}
+
+.profileEditCard select,
+.profileEditCard input {
+  width: 100%;
+  margin-top: 8px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 14px;
+  background: #fffdf8;
+}
+
+.birthdayGrid {
+  display: grid;
+  grid-template-columns: .8fr 1fr 1fr;
+  gap: 12px;
+}
+
+@media(max-width: 900px) {
+  .profileLayout {
+    grid-template-columns: 1fr;
+  }
+
+  .birthdayGrid,
+  .readOnlyGrid {
+    grid-template-columns: 1fr;
+  }
+}

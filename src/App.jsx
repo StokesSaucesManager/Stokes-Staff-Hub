@@ -28,7 +28,8 @@ import {
   Trash2,
   Eye,
   EyeOff,
-  ShieldCheck
+  ShieldCheck,
+  UserCircle
 } from "lucide-react";
 import { supabase } from "./supabaseClient";
 import "./styles.css";
@@ -1129,6 +1130,131 @@ function JoinRequestsManager({ requests, reloadRequests, reloadEmployees, setNot
 }
 
 
+
+function MyProfile({ profile, refreshProfile }) {
+  const [favouriteProduct, setFavouriteProduct] = useState(profile?.favourite_product || "");
+  const [birthdayDay, setBirthdayDay] = useState(profile?.birthday_day || "");
+  const [birthdayMonth, setBirthdayMonth] = useState(profile?.birthday_month || "");
+  const [birthdayYear, setBirthdayYear] = useState(profile?.birthday_year || "");
+  const [notice, setNotice] = useState(null);
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    setFavouriteProduct(profile?.favourite_product || "");
+    setBirthdayDay(profile?.birthday_day || "");
+    setBirthdayMonth(profile?.birthday_month || "");
+    setBirthdayYear(profile?.birthday_year || "");
+  }, [profile]);
+
+  async function saveProfile(e) {
+    e.preventDefault();
+    setNotice(null);
+
+    if (!supabase || !profile?.id) {
+      setNotice({ type: "error", text: "Could not find your profile." });
+      return;
+    }
+
+    setBusy(true);
+
+    const { error } = await supabase
+      .from("employees")
+      .update({
+        favourite_product: favouriteProduct || null,
+        birthday_day: birthdayDay ? Number(birthdayDay) : null,
+        birthday_month: birthdayMonth ? Number(birthdayMonth) : null,
+        birthday_year: birthdayYear ? Number(birthdayYear) : null
+      })
+      .eq("id", profile.id);
+
+    setBusy(false);
+
+    if (error) {
+      setNotice({ type: "error", text: error.message });
+      return;
+    }
+
+    setNotice({ type: "success", text: "Profile updated." });
+    await refreshProfile?.();
+  }
+
+  return (
+    <section>
+      <div className="pageIntro">
+        <p className="eyebrow">My Profile</p>
+        <h1>Your Stokes profile.</h1>
+        <p>You can update your birthday and favourite Stokes product. Managers control work details.</p>
+      </div>
+
+      {notice && <Notice type={notice.type}>{notice.text}</Notice>}
+
+      <div className="profileLayout">
+        <article className="profileCardLarge">
+          <div className="profileHero">
+            <Avatar />
+            <div>
+              <h2>{profile?.full_name}</h2>
+              <p>{profile?.email}</p>
+            </div>
+          </div>
+
+          <div className="readOnlyGrid">
+            <div><span>Role</span><strong>{profile?.role || "Not set"}</strong></div>
+            <div><span>Department</span><strong>{profile?.department || "Not set"}</strong></div>
+            <div><span>Start date</span><strong>{formatDate(profile?.start_date)}</strong></div>
+            <div><span>Status</span><strong>{profile?.status || "Not set"}</strong></div>
+          </div>
+
+          <p className="lockedNote">Role, department, photo, training and manager access are managed by managers.</p>
+        </article>
+
+        <form className="profileEditCard" onSubmit={saveProfile}>
+          <div className="loginIcon"><UserCircle size={28} /></div>
+          <h2>Edit personal details</h2>
+
+          <label>
+            Favourite Stokes product
+            <select value={favouriteProduct} onChange={(e) => setFavouriteProduct(e.target.value)}>
+              <option value="">Not set yet</option>
+              {PRODUCTS.map((product) => (
+                <option key={product} value={product}>{product}</option>
+              ))}
+            </select>
+          </label>
+
+          <div className="birthdayGrid">
+            <label>
+              Birthday day
+              <input type="number" min="1" max="31" placeholder="Day" value={birthdayDay} onChange={(e) => setBirthdayDay(e.target.value)} />
+            </label>
+
+            <label>
+              Month
+              <select value={birthdayMonth} onChange={(e) => setBirthdayMonth(e.target.value)}>
+                <option value="">Month</option>
+                {MONTHS.map((month, index) => (
+                  <option key={month} value={index + 1}>{month}</option>
+                ))}
+              </select>
+            </label>
+
+            <label>
+              Year optional
+              <input type="number" min="1900" max="2100" placeholder="Optional" value={birthdayYear} onChange={(e) => setBirthdayYear(e.target.value)} />
+            </label>
+          </div>
+
+          <button type="submit" className="primaryButton" disabled={busy}>
+            <Save size={18} />
+            {busy ? "Saving..." : "Save my profile"}
+          </button>
+        </form>
+      </div>
+    </section>
+  );
+}
+
+
 function ManagerLogin({ onLoggedIn }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -1874,6 +2000,7 @@ function App() {
     home: <Home setPage={setPage} employees={employees} news={news} openPerson={setSelectedPerson} />,
     people: <People employees={employees} openPerson={setSelectedPerson} />,
     news: <News news={news.filter((item) => item.published !== false)} />,
+    profile: <MyProfile profile={currentProfile} refreshProfile={async () => { await checkAccess(session); await loadEmployees(); }} />,
     birthdays: <BirthdaysPage employees={employees} openPerson={setSelectedPerson} />,
     anniversaries: <AnniversariesPage employees={employees} openPerson={setSelectedPerson} />,
     starters: <StartersPage employees={employees} openPerson={setSelectedPerson} />,
@@ -1940,6 +2067,7 @@ function App() {
           <button className={page === "home" ? "active" : ""} type="button" onClick={() => setPage("home")}>Home</button>
           <button className={page === "people" ? "active" : ""} type="button" onClick={() => setPage("people")}>People</button>
           <button className={page === "news" ? "active" : ""} type="button" onClick={() => setPage("news")}>News</button>
+          <button className={page === "profile" ? "active" : ""} type="button" onClick={() => setPage("profile")}>My Profile</button>
           {currentProfile?.is_manager && (
             <button className={page === "manager" ? "active" : ""} type="button" onClick={() => setPage("manager")}>Manager</button>
           )}

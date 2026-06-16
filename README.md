@@ -1,10 +1,17 @@
-# Stokes Staff Hub V12 Fixed Lock Access
+# Stokes Staff Hub V13 My Profile
 
-Fixes white screen caused by access lock being inserted in the wrong place.
+Adds a staff My Profile page.
 
-## Changes
-- Public access locked behind approval
-- Incognito users see Request Access / Sign In
-- Approved users can enter the hub
-- Unapproved users see Waiting Approval
-- Inactive users are blocked
+Staff can edit:
+- Favourite Stokes product
+- Birthday day/month/year
+
+Staff can only view:
+- Name
+- Email
+- Role
+- Department
+- Start date
+- Status
+
+Managers still control work details, photos, training, employment status and manager access.
