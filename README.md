@@ -1,10 +1,22 @@
-# Stokes Staff Hub V14 Manager Photo URL
+# Stokes Staff Hub V15 Photo Upload
 
-Adds manager-only profile photo controls to the employee edit form.
+Adds manager-only photo uploads from phone/computer library.
 
-## Adds
-- Photo URL field
-- Use default profile icon checkbox
-- Photo preview
-- Public/person cards use employee photos when set
-- My Profile shows the employee photo but staff cannot edit it
+Supabase setup:
+1. Supabase → Storage → New bucket
+2. Name: employee-photos
+3. Make it public
+
+Then run:
+
+create policy "authenticated users can upload employee photos"
+on storage.objects
+for insert
+to authenticated
+with check (bucket_id = 'employee-photos');
+
+create policy "public can view employee photos"
+on storage.objects
+for select
+to public
+using (bucket_id = 'employee-photos');

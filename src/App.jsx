@@ -767,6 +767,7 @@ function cleanEmployeeForSave(form) {
 
 function EmployeeEditor({ editing, onSave, onCancel }) {
   const [form, setForm] = useState(defaultEmployee());
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
   useEffect(() => {
     if (editing) {
@@ -784,6 +785,43 @@ function EmployeeEditor({ editing, onSave, onCancel }) {
 
   function update(key, value) {
     setForm((prev) => ({ ...prev, [key]: value }));
+  }
+
+  async function uploadPhoto(file) {
+    if (!file) return;
+
+    if (!supabase) {
+      alert("Supabase is not connected.");
+      return;
+    }
+
+    if (!file.type.startsWith("image/")) {
+      alert("Please choose an image file.");
+      return;
+    }
+
+    setUploadingPhoto(true);
+
+    const safeName = file.name.replace(/[^a-z0-9.\-_]/gi, "-").toLowerCase();
+    const filePath = `${Date.now()}-${safeName}`;
+
+    const { error } = await supabase.storage
+      .from("employee-photos")
+      .upload(filePath, file, { upsert: true });
+
+    if (error) {
+      setUploadingPhoto(false);
+      alert(error.message);
+      return;
+    }
+
+    const { data } = supabase.storage
+      .from("employee-photos")
+      .getPublicUrl(filePath);
+
+    update("photo_url", data.publicUrl);
+    update("use_default_icon", false);
+    setUploadingPhoto(false);
   }
 
   function submit(e) {
@@ -828,7 +866,17 @@ function EmployeeEditor({ editing, onSave, onCancel }) {
 
           <div className="photoFields">
             <label>
-              Photo URL
+              Upload photo
+              <input
+                type="file"
+                accept="image/*"
+                disabled={uploadingPhoto}
+                onChange={(e) => uploadPhoto(e.target.files?.[0])}
+              />
+            </label>
+
+            <details className="photoUrlDetails">
+              <summary>Or paste a photo link</summary>
               <input
                 type="url"
                 placeholder="Paste image link"
@@ -836,7 +884,7 @@ function EmployeeEditor({ editing, onSave, onCancel }) {
                 disabled={Boolean(form.use_default_icon)}
                 onChange={(e) => update("photo_url", e.target.value)}
               />
-            </label>
+            </details>
 
             <label className="inlineCheck">
               <input
@@ -846,6 +894,8 @@ function EmployeeEditor({ editing, onSave, onCancel }) {
               />
               Use default profile icon
             </label>
+
+            {uploadingPhoto && <p className="smallPrint">Uploading photo...</p>}
           </div>
         </div>
 
